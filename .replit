@@ -11,5 +11,17 @@ language = "python3"
 requiredFiles = [".replit", "replit.nix"]
 
 [deployment]
-run = ["python3", "main.py"]
+run = ["sh", "-c", "streamlit run main.py --server.address=0.0.0.0 --server.port=5000"]
 deploymentTarget = "cloudrun"
+
+[workflows]
+runButton = "Run Streamlit"
+
+[[workflows.workflow]]
+name = "Run Streamlit"
+author = 32633564
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "streamlit run main.py --server.address=0.0.0.0 --server.port=5000"
