@@ -104,63 +104,62 @@ if st.session_state["election_data"]:
                             st.dataframe(df)
 
                           # Generate XLSX download
-wb = Workbook()
-ws = wb.active
-ws.title = f"{state_code} County Results"
+                            wb = Workbook()
+                            ws = wb.active
+                            ws.title = f"{state_code} County Results"
 
-# Determine which parties exist
-parties_present = sorted({cand.get("party") for cand in state_entry.get("cands", [])})
-party_order = ["D", "R", "I"]
-parties = [p for p in party_order if p in parties_present]
+                            # Determine which parties exist
+                            parties_present = sorted({cand.get("party") for cand in state_entry.get("cands", [])})
+                            party_order = ["D", "R", "I"]
+                            parties = [p for p in party_order if p in parties_present]
 
-# Header row 1: party names (merged)
-col = 2
-for party in parties:
-    ws.cell(row=1, column=col, value={"D": "Democratic", "R": "Republican", "I": "Independent"}.get(party, party))
-    ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
-    col += 2
+                            # Header row 1: party names (merged)
+                            col = 2
+                            for party in parties:
+                                ws.cell(row=1, column=col, value={"D": "Democratic", "R": "Republican", "I": "Independent"}.get(party, party))
+                                ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
+                                col += 2
 
-ws.cell(row=1, column=col, value="Margins & Rating")
-ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
+                            ws.cell(row=1, column=col, value="Margins & Rating")
+                            ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
 
-# Header row 2
-col = 1
-ws.cell(row=2, column=col, value="County")
-col += 1
-for party in parties:
-    ws.cell(row=2, column=col, value="Candidate")
-    ws.cell(row=2, column=col + 1, value="%")
-    col += 2
-ws.cell(row=2, column=col, value="Margin #")
-ws.cell(row=2, column=col + 1, value="Margin %")
-ws.cell(row=2, column=col + 2, value="Total Vote")
-ws.cell(row=2, column=col + 3, value="Rating")
+                            # Header row 2
+                            col = 1
+                            ws.cell(row=2, column=col, value="County")
+                            col += 1
+                            for party in parties:
+                                ws.cell(row=2, column=col, value="Candidate")
+                                ws.cell(row=2, column=col + 1, value="%")
+                                col += 2
+                            ws.cell(row=2, column=col, value="Margin #")
+                            ws.cell(row=2, column=col + 1, value="Margin %")
+                            ws.cell(row=2, column=col + 2, value="Total Vote")
+                            ws.cell(row=2, column=col + 3, value="Rating")
 
-# Format headers
-for r in range(1, 3):
-    for c in range(1, col + 4):
-        cell = ws.cell(row=r, column=c)
-        cell.font = Font(bold=True)
-        cell.alignment = Alignment(horizontal="center", vertical="center")
+                            # Format headers
+                            for r in range(1, 3):
+                                for c in range(1, col + 4):
+                                    cell = ws.cell(row=r, column=c)
+                                    cell.font = Font(bold=True)
+                                    cell.alignment = Alignment(horizontal="center", vertical="center")
 
-# Body rows (just filling in counties for now)
-for i, county in enumerate(counties, start=3):
-    ws.cell(row=i, column=1, value=county.get("name", "Unknown County"))
+                            # Body rows (just filling in counties for now)
+                            for i, county in enumerate(counties, start=3):
+                                ws.cell(row=i, column=1, value=county.get("name", "Unknown County"))
 
-# Save file to memory
-file_stream = BytesIO()
-wb.save(file_stream)
-file_stream.seek(0)
+                            # Save file to memory
+                            file_stream = BytesIO()
+                            wb.save(file_stream)
+                            file_stream.seek(0)
 
-st.download_button(
-    label="📥 Download County-Level Spreadsheet",
-    data=file_stream,
-    file_name=f"{state_code}_county_results.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
-  
+                            st.download_button(
+                                label="📥 Download County-Level Spreadsheet",
+                                data=file_stream,
+                                file_name=f"{state_code}_county_results.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            )
                         else:
-                        st.warning("No county-level data found.")
+                            st.warning("No county-level data found.")
                 else:
                     st.warning("Selected state not found.")
             else:
