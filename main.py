@@ -220,9 +220,8 @@ if st.session_state["election_data"]:
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                             key=f"county_download_{state_code}"
                         )
-                        
-                        else:
-                            st.warning("No county-level data found.")
+                    else:
+                        st.warning("No county-level data found.")
                 else:
                     st.warning("Selected state not found.")
             else:
