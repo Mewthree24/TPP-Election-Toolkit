@@ -100,7 +100,6 @@ if st.session_state["election_data"]:
 
                         if spreadsheet_rows:
                             df = pd.DataFrame(spreadsheet_rows)
-                            st.subheader(f"🧾 {selected_state} County-Level Results")
 
                             wb = Workbook()
                             ws = wb.active
@@ -281,27 +280,144 @@ if st.session_state["election_data"]:
                 else:
                     st.warning("Selected state not found.")
             else:
-                # National View logic (flatten by state)
-                entries_to_convert = election_data.get("elections", [])
-                spreadsheet_rows = []
-                for entry in entries_to_convert:
-                    state = entry.get("state", "Unknown")
-                    for cand in entry.get("cands", []):
-                        spreadsheet_rows.append({
-                            "State": state,
-                            "Candidate": cand.get("name", ""),
-                            "Party": cand.get("party", ""),
-                            "Votes": cand.get("votes", 0),
-                            "Incumbent": cand.get("incumbent", False),
-                            "Caucus": cand.get("caucus", ""),
-                        })
-
-                if spreadsheet_rows:
-                    df = pd.DataFrame(spreadsheet_rows)
-                    st.subheader("🧾 National Election Results")
-                    st.dataframe(df)
                 else:
-                    st.warning("No state-level data found.")
+                # === Presidential National View Spreadsheet ===
+                entries_to_convert = election_data.get("elections", [])
+
+                if selected_election_type == "President":
+                    wb = Workbook()
+                    ws = wb.active
+                    ws.title = "Presidential National View"
+
+                    candidates = []
+                    candidate_names = []
+                    party_labels = {"D": "Democratic", "R": "Republican"}
+                    party_to_candidate = {}
+
+                    # Extract all candidates (assumes same across states)
+                    if entries_to_convert:
+                        first_entry = entries_to_convert[0]
+                        candidates = first_entry.get("cands", [])
+                        for cand in candidates:
+                            party = cand["party"]
+                            party_to_candidate[party] = cand["name"]
+                            candidate_names.append(cand["name"])
+
+                    # === Header rows ===
+                    ws.cell(row=2, column=1, value="State")
+                    col = 2
+                    for party in party_to_candidate:
+                        full_party = party_labels.get(party, party)
+                        ws.cell(row=1, column=col, value=full_party)
+                        ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
+                        ws.cell(row=2, column=col, value="#")
+                        ws.cell(row=2, column=col + 1, value="%")
+                        col += 2
+
+                    ws.cell(row=1, column=col, value="Margins & Rating")
+                    ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
+                    ws.cell(row=2, column=col, value="Margin #")
+                    ws.cell(row=2, column=col + 1, value="Margin %")
+                    ws.cell(row=2, column=col + 2, value="Total Vote")
+                    ws.cell(row=2, column=col + 3, value="Rating")
+
+                    for r in range(1, 3):
+                        for c in range(1, col + 4):
+                            cell = ws.cell(row=r, column=c)
+                            cell.font = Font(bold=True)
+                            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+                    # === Data Rows ===
+                    row_idx = 3
+                    total_votes = {name: 0 for name in candidate_names}
+                    electoral_totals = {name: 0 for name in candidate_names}
+                    all_states = {e["state"]: e for e in entries_to_convert}
+
+                    for state_code in state_code_to_name:
+                        result = all_states.get(state_code)
+                        if not result:
+                            continue
+
+                        ws.cell(row=row_idx, column=1, value=state_code_to_name[state_code])
+
+                        cands = result.get("cands", [])
+                        votes = {c["name"]: round(c["votes"], 2) for c in cands}
+                        total = sum(votes.values())
+
+                        col = 2
+                        top = sorted(votes.items(), key=lambda x: x[1], reverse=True)
+                        winner = top[0][0]
+                        winner_votes = top[0][1]
+                        second_votes = top[1][1] if len(top) > 1 else 0
+                        margin = winner_votes - second_votes
+                        margin_pct = round(margin / total * 100, 2) if total else 0
+
+                        winner_party = next((c["party"] for c in cands if c["name"] == winner), "?")
+                        rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
+                        rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+
+                        for party in party_to_candidate:
+                            name = party_to_candidate[party]
+                            v = int(round(votes.get(name, 0)))
+                            pct = round(v / total * 100, 2) if total else 0
+
+                            if name == winner:
+                                ws.cell(row=row_idx, column=col, value=result.get("electoralVotes", 0))
+                                electoral_totals[name] += result.get("electoralVotes", 0)
+                            else:
+                                ws.cell(row=row_idx, column=col, value="—")
+
+                            ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(pct))
+                            total_votes[name] += v
+                            col += 2
+
+                        ws.cell(row=row_idx, column=col, value=f"+{margin}")
+                        ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
+                        ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(total))))
+                        ws.cell(row=row_idx, column=col + 3, value=rating_label)
+                        row_idx += 1
+
+                    # === TOTALS Row ===
+                    ws.cell(row=row_idx, column=1, value="TOTALS")
+                    col = 2
+                    grand_total = sum(total_votes.values())
+
+                    for name in candidate_names:
+                        ws.cell(row=row_idx, column=col, value=electoral_totals[name])
+                        pct = round(total_votes[name] / grand_total * 100, 2) if grand_total else 0
+                        ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(pct))
+                        col += 2
+
+                    top_totals = sorted(total_votes.items(), key=lambda x: x[1], reverse=True)
+                    top = top_totals[0][1]
+                    second = top_totals[1][1] if len(top_totals) > 1 else 0
+                    margin = top - second
+                    margin_pct = round(margin / grand_total * 100, 2) if grand_total else 0
+                    winner_party = next((c["party"] for c in candidates if c["name"] == top_totals[0][0]), "?")
+                    rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
+                    rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+
+                    ws.cell(row=row_idx, column=col, value=f"+{margin}")
+                    ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
+                    ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(grand_total))))
+                    ws.cell(row=row_idx, column=col + 3, value=rating_label)
+
+                    for c in range(1, col + 4):
+                        ws.cell(row=row_idx, column=c).font = Font(bold=True)
+
+                    # Save to buffer
+                    file_stream = BytesIO()
+                    wb.save(file_stream)
+                    file_stream.seek(0)
+
+                    st.subheader("🧾 Presidential National View")
+                    st.download_button(
+                        label="📥 Download Presidential Spreadsheet",
+                        data=file_stream,
+                        file_name="Presidential_National_View.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        key="president_national_view"
+                    )
         else:
             # For U.S. House, State House, State Senate — national-level only
             entries_to_convert = election_data.get("elections", [])
