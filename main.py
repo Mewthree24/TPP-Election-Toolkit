@@ -112,7 +112,7 @@ if st.session_state["election_data"]:
                             candidates = state_entry.get("cands", [])
                             party_map = {c["party"]: c["name"] for c in candidates}
                             parties = [p for p in ["D", "R", "I"] if p in party_map]
-
+                            
                             # === Header rows ===
                             # Row 1: merged party headers
                             col = 2
@@ -120,10 +120,10 @@ if st.session_state["election_data"]:
                                 ws.cell(row=1, column=col, value=party_codes.get(party, party))
                                 ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
                                 col += 2
-
-                            ws.cell(row=1, column=col, value="Metrics")
+                            
+                            ws.cell(row=1, column=col, value="Margins & Rating")
                             ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
-
+                            
                             # Row 2: subheaders
                             ws.cell(row=2, column=1, value="County")
                             col = 2
@@ -131,53 +131,52 @@ if st.session_state["election_data"]:
                                 ws.cell(row=2, column=col, value=party_map.get(party, ""))
                                 ws.cell(row=2, column=col + 1, value="%")
                                 col += 2
-
-                            ws.cell(row=2, column=col, value="#")
-                            ws.cell(row=2, column=col + 1, value="%")
+                            
+                            ws.cell(row=2, column=col, value="Margin #")
+                            ws.cell(row=2, column=col + 1, value="Margin %")
                             ws.cell(row=2, column=col + 2, value="Total Vote")
                             ws.cell(row=2, column=col + 3, value="Rating")
-
+                            
                             # Format headers
                             for r in range(1, 3):
                                 for c in range(1, col + 4):
                                     cell = ws.cell(row=r, column=c)
                                     cell.font = Font(bold=True)
                                     cell.alignment = Alignment(horizontal="center", vertical="center")
-
+                            
                             # === Data rows ===
                             totals = {party: 0 for party in parties}
                             row_idx = 3
-
+                            
                             for county in counties:
                                 ws.cell(row=row_idx, column=1, value=county.get("name", ""))
                                 county_votes = {c["party"]: round(c["votes"], 2) for c in county.get("cands", [])}
                                 total_vote = sum(county_votes.values())
                                 vote_values = []
-
+                            
                                 col = 2
                                 for party in parties:
-                                    v = county_votes.get(party, 0)
-                                    vote_percent = round(v / total_vote * 100, 2) if total_vote else 0
-                                    pct = f"{vote_percent}%"
+                                    v = int(round(county_votes.get(party, 0)))
+                                    pct = round(v / total_vote * 100, 2) if total_vote else 0
                                     ws.cell(row=row_idx, column=col, value="{:,}".format(v))
-                                    ws.cell(row=row_idx, column=col + 1, value=pct)
+                                    ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(pct))
                                     col += 2
                                     totals[party] += v
                                     vote_values.append((party, v))
-
+                            
                                 vote_values.sort(key=lambda x: x[1], reverse=True)
                                 margin = vote_values[0][1] - vote_values[1][1] if len(vote_values) > 1 else vote_values[0][1]
                                 margin_pct = round(margin / total_vote * 100, 2) if total_vote else 0
                                 rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
                                 winner_party = vote_values[0][0] if vote_values else "?"
                                 rating_label = f"{rating} {party_codes.get(winner_party, winner_party)}"
-
+                            
                                 ws.cell(row=row_idx, column=col, value="{:,}".format(margin))
                                 ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
-                                ws.cell(row=row_idx, column=col + 2, value="{:,}".format(grand_total))
+                                ws.cell(row=row_idx, column=col + 2, value="{:,}".format(total_vote))
                                 ws.cell(row=row_idx, column=col + 3, value=rating_label)
                                 row_idx += 1
-
+                            
                             # === Totals row ===
                             ws.cell(row=row_idx, column=1, value="TOTALS")
                             grand_total = sum(totals.values())
@@ -185,37 +184,43 @@ if st.session_state["election_data"]:
                             sorted_totals = [(p, totals[p]) for p in parties]
                             for party in parties:
                                 v = totals[party]
-                                pct = f"{round(v / grand_total * 100, 2)}%" if grand_total else "0%"
+                                pct = round(v / grand_total * 100, 2) if grand_total else 0
                                 ws.cell(row=row_idx, column=col, value=v)
-                                ws.cell(row=row_idx, column=col + 1, value=pct)
+                                ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(pct))
                                 col += 2
-
+                            
                             sorted_totals.sort(key=lambda x: x[1], reverse=True)
                             margin = sorted_totals[0][1] - sorted_totals[1][1] if len(sorted_totals) > 1 else sorted_totals[0][1]
                             margin_pct = round(margin / grand_total * 100, 2) if grand_total else 0
                             rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
                             winner_party = sorted_totals[0][0] if sorted_totals else "?"
                             rating_label = f"{rating} {party_codes.get(winner_party, winner_party)}"
-
-                            ws.cell(row=row_idx, column=col, value=margin)
-                            ws.cell(row=row_idx, column=col + 1, value=f"{margin_pct}%")
-                            ws.cell(row=row_idx, column=col + 2, value=grand_total)
+                            
+                            ws.cell(row=row_idx, column=col, value="{:,}".format(margin))
+                            ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
+                            ws.cell(row=row_idx, column=col + 2, value="{:,}".format(grand_total))
                             ws.cell(row=row_idx, column=col + 3, value=rating_label)
+                        
+                        from openpyxl.styles import Font
 
-
-                            # Save file to memory
-                            file_stream = BytesIO()
-                            wb.save(file_stream)
-                            file_stream.seek(0)
-
-                            st.download_button(
-                                label="📥 Download County-Level Spreadsheet",
-                                data=file_stream,
-                                file_name=f"{state_code}_county_results.xlsx",
-                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                            )
-
-
+                        # Bold Totals row
+                        for col_idx in range(1, col + 4):
+                            ws.cell(row=row_idx, column=col_idx).font = Font(bold=True)
+                        
+                        # Save file to memory
+                        file_stream = BytesIO()
+                        wb.save(file_stream)
+                        file_stream.seek(0)
+                        
+                        # Create download button (one time only)
+                        st.download_button(
+                            label="📥 Download County-Level Spreadsheet",
+                            data=file_stream,
+                            file_name=f"{state_code}_county_results.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key=f"county_download_{state_code}"
+                        )
+                        
                         else:
                             st.warning("No county-level data found.")
                 else:
