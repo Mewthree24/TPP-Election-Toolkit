@@ -1,4 +1,3 @@
-
 import streamlit as st
 import json
 import pandas as pd
@@ -61,15 +60,13 @@ if st.session_state["election_data"]:
         "State Senate (Player State)": "electNightStS"
     }
 
-    # Primary dropdown for election type
-    selected_election_type = st.selectbox("Select Election Type", list(election_types.keys()))
+        # Limit to only election types present in the current JSON
+        available_election_types = [etype for etype, ekey in election_types.items() if ekey in st.session_state["election_data"]]
 
-    # Retrieve the corresponding key from the JSON
-    election_key = election_types[selected_election_type]
-
-    # Check if the selected election type exists in the data
-    if election_key in st.session_state["election_data"]:
-        election_data = st.session_state["election_data"][election_key]
+        if available_election_types:
+            selected_election_type = st.selectbox("Select Election Type", available_election_types)
+            election_key = election_types[selected_election_type]
+            election_data = st.session_state["election_data"][election_key]
 
         # For President, Senate, and Governor, provide a secondary dropdown for state selection
         if selected_election_type in ["President", "Senate", "Governor"]:
