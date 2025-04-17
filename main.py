@@ -101,7 +101,6 @@ if st.session_state["election_data"]:
                         if spreadsheet_rows:
                             df = pd.DataFrame(spreadsheet_rows)
                             st.subheader(f"🧾 {selected_state} County-Level Results")
-                            st.dataframe(df)
 
                             wb = Workbook()
                             ws = wb.active
@@ -127,17 +126,20 @@ if st.session_state["election_data"]:
 
                             for party in party_order:
                                 full_party_name = party_labels.get(party, party)
-                                ws.cell(row=1, column=col, value=full_party_name)
-                                ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
-
                                 candidate_names = party_to_candidates[party]
-                                if candidate_names:
-                                    ws.cell(row=2, column=col, value=candidate_names[0])
-                                else:
-                                    ws.cell(row=2, column=col, value="Candidate")
-                                ws.cell(row=2, column=col + 1, value="%")
-                                col += 2
-                            
+
+                                span = len(candidate_names) * 2
+                                if span > 0:
+                                    ws.cell(row=1, column=col, value=full_party_name)
+                                    ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + span - 1)
+
+                                    for cand in candidate_names:
+                                        ws.cell(row=2, column=col, value=cand)
+                                        ws.cell(row=2, column=col + 1, value="%")
+                                        col += 2
+
+                            ws.cell(row=1, column=col, value="Margins & Rating")
+                            ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
                             ws.cell(row=2, column=col, value="Margin #")
                             ws.cell(row=2, column=col + 1, value="Margin %")
                             ws.cell(row=2, column=col + 2, value="Total Vote")
@@ -151,33 +153,36 @@ if st.session_state["election_data"]:
                                     cell.alignment = Alignment(horizontal="center", vertical="center")
                             
                             # === Data rows ===
-                            totals = {party: 0 for party in parties}
                             row_idx = 3
-                            
+                            ordered_candidates = [(party, name) for party in party_order for name in party_to_candidates[party]]
+                            candidate_totals = {cand_name: 0 for _, cand_name in ordered_candidates}
+
                             for county in counties:
                                 clean_name = county.get("name", "Unknown County").replace(" County", "").title()
                                 ws.cell(row=row_idx, column=1, value=clean_name)
-                                county_votes = {c["party"]: round(c["votes"], 2) for c in county.get("cands", [])}
-                                total_vote = sum(county_votes.values())
+
+                                vote_map = {c["name"]: round(c["votes"], 2) for c in county.get("cands", [])}
+                                total_vote = sum(vote_map.values())
                                 vote_values = []
-                            
+
                                 col = 2
-                                for party in parties:
-                                    v = int(round(county_votes.get(party, 0)))
+                                for _, candidate_name in ordered_candidates:
+                                    v = int(round(vote_map.get(candidate_name, 0)))
                                     pct = round(v / total_vote * 100, 2) if total_vote else 0
                                     ws.cell(row=row_idx, column=col, value="{:,}".format(v))
                                     ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(pct))
+                                    candidate_totals[candidate_name] += v
+                                    vote_values.append((candidate_name, v))
                                     col += 2
-                                    totals[party] += v
-                                    vote_values.append((party, v))
-                            
+
                                 vote_values.sort(key=lambda x: x[1], reverse=True)
                                 margin = vote_values[0][1] - vote_values[1][1] if len(vote_values) > 1 else vote_values[0][1]
                                 margin_pct = round(margin / total_vote * 100, 2) if total_vote else 0
+                                winner = vote_values[0][0]
+                                winner_party = next((c["party"] for c in candidates if c["name"] == winner), "?")
                                 rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
-                                winner_party = vote_values[0][0] if vote_values else "?"
-                                rating_label = f"{rating} {party_codes.get(winner_party, winner_party)}"
-                            
+                                rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+
                                 ws.cell(row=row_idx, column=col, value="{:,}".format(margin))
                                 ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
                                 ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(total_vote))))
@@ -186,23 +191,26 @@ if st.session_state["election_data"]:
                             
                             # === Totals row ===
                             ws.cell(row=row_idx, column=1, value="TOTALS")
-                            grand_total = sum(totals.values())
+                            grand_total = sum(candidate_totals.values())
                             col = 2
-                            sorted_totals = [(p, totals[p]) for p in parties]
-                            for party in parties:
-                                v = int(round(totals[party]))
+
+                            for _, cand_name in ordered_candidates:
+                                v = int(round(candidate_totals[cand_name]))
                                 pct = round(v / grand_total * 100, 2) if grand_total else 0
                                 ws.cell(row=row_idx, column=col, value="{:,}".format(v))
                                 ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(pct))
                                 col += 2
-                            
-                            sorted_totals.sort(key=lambda x: x[1], reverse=True)
-                            margin = sorted_totals[0][1] - sorted_totals[1][1] if len(sorted_totals) > 1 else sorted_totals[0][1]
+
+                            # Margin/Rating
+                            sorted_totals = sorted(candidate_totals.items(), key=lambda x: x[1], reverse=True)
+                            top = sorted_totals[0][1]
+                            second = sorted_totals[1][1] if len(sorted_totals) > 1 else 0
+                            margin = top - second
                             margin_pct = round(margin / grand_total * 100, 2) if grand_total else 0
+                            winner_party = next((c["party"] for c in candidates if c["name"] == sorted_totals[0][0]), "?")
                             rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
-                            winner_party = sorted_totals[0][0] if sorted_totals else "?"
-                            rating_label = f"{rating} {party_codes.get(winner_party, winner_party)}"
-                            
+                            rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+
                             ws.cell(row=row_idx, column=col, value="{:,}".format(margin))
                             ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
                             ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(grand_total))))
@@ -218,12 +226,52 @@ if st.session_state["election_data"]:
                         file_stream = BytesIO()
                         wb.save(file_stream)
                         file_stream.seek(0)
+
+                        # === DISPLAY FORMATTED PREVIEW IN STREAMLIT ===
+                        # Collect rows from worksheet
+                        excel_rows = []
+                        for row in ws.iter_rows(min_row=1, max_row=ws.max_row, values_only=True):
+                            excel_rows.append(list(row))
+
+                            # Merge row 1 and 2 into a single header string with uniqueness
+                            header_row = []
+                            row1 = excel_rows[0]
+                            row2 = excel_rows[1]
+                            used_names = {}
+
+                            for col1, col2 in zip(row1, row2):
+                                    if col1 and col2:
+                                        label = f"{col1} - {col2}"
+                                    elif col1:
+                                        label = str(col1)
+                                    elif col2:
+                                        label = str(col2)
+                                    else:
+                                        label = "Unnamed"
+
+                                    # Ensure uniqueness
+                                    if label in used_names:
+                                        count = used_names[label] + 1
+                                        used_names[label] = count
+                                        label = f"{label} ({count})"
+                                    else:
+                                        used_names[label] = 1
+
+                                    header_row.append(label)
+
+                        # Use remaining rows as data
+                        data_rows = excel_rows[2:]
+
+                        # Display in Streamlit
+                        df_display = pd.DataFrame(data_rows, columns=header_row)
+                        st.subheader(f"🧾 {selected_state} County-Level Results")
+                        st.dataframe(df_display, use_container_width=True)
                         
                         # Create download button (one time only)
                         st.download_button(
                             label="📥 Download County-Level Spreadsheet",
                             data=file_stream,
-                            file_name=f"{state_code}_{selected_election_type.replace(' ', '')}_County_Results.xlsx",
+                            file_name = f"{state_code}_{selected_election_type}_County_Results.xlsx",
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                             key=f"county_download_{state_code}"
                         )
