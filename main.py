@@ -115,15 +115,9 @@ if st.session_state["election_data"]:
                             party_order = ["D", "R", "I"]
                             parties = [p for p in party_order if p in parties_present]
 
-                            # Header row 1: party names (merged)
-                            col = 2
-                            for party in parties:
-                                ws.cell(row=1, column=col, value={"D": "Democratic", "R": "Republican", "I": "Independent"}.get(party, party))
-                                ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
-                                col += 2
-
-ws.cell(row=1, column=col, value="Margins & Rating")
-                            ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
+# Header row 1: additional header for "Margins & Rating"
+ws.cell(row=1, column=col, value="Margins & Rating") 
+ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
 
                             # Header row 2
                             col = 1
