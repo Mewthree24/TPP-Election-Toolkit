@@ -234,7 +234,8 @@ if st.session_state["election_data"]:
                             excel_rows.append(list(row))
 
                             # Merge row 1 and 2 into a single header string with uniqueness
-                            header_row = []
+                        header_row = []
+                        if len(excel_rows) >= 2:
                             row1 = excel_rows[0]
                             row2 = excel_rows[1]
                             used_names = {}
