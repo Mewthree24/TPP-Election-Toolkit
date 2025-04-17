@@ -5,6 +5,8 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from io import BytesIO
 
+
+
 # Initialize session
 if "election_data" not in st.session_state:
     st.session_state["election_data"] = {}
@@ -104,113 +106,113 @@ if st.session_state["election_data"]:
                             st.dataframe(df)
 
 # Generate XLSX download
-wb = Workbook()
-ws = wb.active
-ws.title = f"{state_code} County Results"
+                            wb = Workbook()
+                            ws = wb.active
+                            ws.title = f"{state_code} County Results"
 
-# Determine which parties exist
-parties_present = sorted({cand.get("party") for cand in state_entry.get("cands", [])})
-party_order = ["D", "R", "I"]
-parties = [p for p in party_order if p in parties_present]
+                            # Determine which parties exist
+                            parties_present = sorted({cand.get("party") for cand in state_entry.get("cands", [])})
+                            party_order = ["D", "R", "I"]
+                            parties = [p for p in party_order if p in parties_present]
 
-# Header row 1: party names (merged)
-col = 2
-for party in parties:
-    ws.cell(row=1, column=col, value={"D": "Democratic", "R": "Republican", "I": "Independent"}.get(party, party))
-    ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
-    col += 2
+                            # Header row 1: party names (merged)
+                            col = 2
+                            for party in parties:
+                                ws.cell(row=1, column=col, value={"D": "Democratic", "R": "Republican", "I": "Independent"}.get(party, party))
+                                ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
+                                col += 2
 
 ws.cell(row=1, column=col, value="Margins & Rating")
-ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
+                            ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
 
-# Header row 2
-col = 1
-ws.cell(row=2, column=col, value="County")
-col += 1
-for party in parties:
-    ws.cell(row=2, column=col, value="Candidate")
-    ws.cell(row=2, column=col + 1, value="%")
-    col += 2
-ws.cell(row=2, column=col, value="Margin #")
-ws.cell(row=2, column=col + 1, value="Margin %")
-ws.cell(row=2, column=col + 2, value="Total Vote")
-ws.cell(row=2, column=col + 3, value="Rating")
+                            # Header row 2
+                            col = 1
+                            ws.cell(row=2, column=col, value="County")
+                            col += 1
+                            for party in parties:
+                                ws.cell(row=2, column=col, value="Candidate")
+                                ws.cell(row=2, column=col + 1, value="%")
+                                col += 2
+                            ws.cell(row=2, column=col, value="Margin #")
+                            ws.cell(row=2, column=col + 1, value="Margin %")
+                            ws.cell(row=2, column=col + 2, value="Total Vote")
+                            ws.cell(row=2, column=col + 3, value="Rating")
 
-# Format headers
-for r in range(1, 3):
-    for c in range(1, col + 4):
-        cell = ws.cell(row=r, column=c)
-        cell.font = Font(bold=True)
-        cell.alignment = Alignment(horizontal="center", vertical="center")
+                            # Format headers
+                            for r in range(1, 3):
+                                for c in range(1, col + 4):
+                                    cell = ws.cell(row=r, column=c)
+                                    cell.font = Font(bold=True)
+                                    cell.alignment = Alignment(horizontal="center", vertical="center")
 
-# Fill county rows
-for row_idx, county in enumerate(counties, start=3):
-    county_name = county.get("name", "Unknown County")
-    cands = county.get("cands", [])
-    ws.cell(row=row_idx, column=1, value=county_name)
+                            # Fill county rows
+                            for row_idx, county in enumerate(counties, start=3):
+                                county_name = county.get("name", "Unknown County")
+                                cands = county.get("cands", [])
+                                ws.cell(row=row_idx, column=1, value=county_name)
 
-    # Map: party → (name, votes)
-    party_votes = {}
-    total_votes = 0
-    for c in cands:
-        party = c.get("party", "")
-        name = c.get("name", "")
-        votes = round(c.get("votes", 0))
-        if party not in party_votes:
-            party_votes[party] = (name, votes)
-            total_votes += votes
+                                # Map: party → (name, votes)
+                                party_votes = {}
+                                total_votes = 0
+                                for c in cands:
+                                    party = c.get("party", "")
+                                    name = c.get("name", "")
+                                    votes = round(c.get("votes", 0))
+                                    if party not in party_votes:
+                                        party_votes[party] = (name, votes)
+                                        total_votes += votes
 
-    # Fill candidate name and % under each party
-    col = 2
-    ordered_parties = [p for p in ["D", "R", "I"] if p in party_votes]
-    vote_values = []
+                                # Fill candidate name and % under each party
+                                col = 2
+                                ordered_parties = [p for p in ["D", "R", "I"] if p in party_votes]
+                                vote_values = []
 
-    for party in ordered_parties:
-        name, votes = party_votes.get(party, ("", 0))
-        pct = round((votes / total_votes) * 100, 2) if total_votes else 0
+                                for party in ordered_parties:
+                                    name, votes = party_votes.get(party, ("", 0))
+                                    pct = round((votes / total_votes) * 100, 2) if total_votes else 0
 
-        ws.cell(row=row_idx, column=col, value=name)
-        ws.cell(row=row_idx, column=col + 1, value=f"{pct}%")
-        col += 2
-        vote_values.append((party, votes))
+                                    ws.cell(row=row_idx, column=col, value=name)
+                                    ws.cell(row=row_idx, column=col + 1, value=f"{pct}%")
+                                    col += 2
+                                    vote_values.append((party, votes))
 
-    # Sort by vote totals to find margin
-    vote_values.sort(key=lambda x: x[1], reverse=True)
-    if len(vote_values) >= 2:
-        margin = vote_values[0][1] - vote_values[1][1]
-    else:
-        margin = vote_values[0][1]
-    margin_pct = round((margin / total_votes) * 100, 2) if total_votes else 0
+                                # Sort by vote totals to find margin
+                                vote_values.sort(key=lambda x: x[1], reverse=True)
+                                if len(vote_values) >= 2:
+                                    margin = vote_values[0][1] - vote_values[1][1]
+                                else:
+                                    margin = vote_values[0][1]
+                                margin_pct = round((margin / total_votes) * 100, 2) if total_votes else 0
 
-    # Rating based on margin
-    if margin_pct < 1:
-        rating = "Tilt"
-    elif margin_pct < 5:
-        rating = "Lean"
-    elif margin_pct < 10:
-        rating = "Likely"
-    else:
-        rating = "Safe"
+                                # Rating based on margin
+                                if margin_pct < 1:
+                                    rating = "Tilt"
+                                elif margin_pct < 5:
+                                    rating = "Lean"
+                                elif margin_pct < 10:
+                                    rating = "Likely"
+                                else:
+                                    rating = "Safe"
 
-    winner_party = vote_values[0][0] if vote_values else "?"
-    rating_full = f"{rating} {party_codes.get(winner_party, winner_party)}"
+                                winner_party = vote_values[0][0] if vote_values else "?"
+                                rating_full = f"{rating} {party_codes.get(winner_party, winner_party)}"
 
-    ws.cell(row=row_idx, column=col, value=margin)
-    ws.cell(row=row_idx, column=col + 1, value=f"{margin_pct}%")
-    ws.cell(row=row_idx, column=col + 2, value=total_votes)
-    ws.cell(row=row_idx, column=col + 3, value=rating_full)
+                                ws.cell(row=row_idx, column=col, value=margin)
+                                ws.cell(row=row_idx, column=col + 1, value=f"{margin_pct}%")
+                                ws.cell(row=row_idx, column=col + 2, value=total_votes)
+                                ws.cell(row=row_idx, column=col + 3, value=rating_full)
 
-# Save file to memory
-file_stream = BytesIO()
-wb.save(file_stream)
-file_stream.seek(0)
+                            # Save file to memory
+                            file_stream = BytesIO()
+                            wb.save(file_stream)
+                            file_stream.seek(0)
 
-st.download_button(
-    label="📥 Download County-Level Spreadsheet",
-    data=file_stream,
-    file_name=f"{state_code}_county_results.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
+                            st.download_button(
+                                label="📥 Download County-Level Spreadsheet",
+                                data=file_stream,
+                                file_name=f"{state_code}_county_results.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            )
 
 
                         else:
