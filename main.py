@@ -81,22 +81,47 @@ if st.session_state["election_data"]:
 
             # Filter data based on state selection
             if selected_state != "National View":
-                # Find the state code from the full name
                 state_code = next((code for code, name in state_code_to_name.items() if name == selected_state), None)
                 if state_code:
-                    # Filter the election data for the selected state
                     state_data = [entry for entry in election_data.get("elections", []) if entry.get("state") == state_code]
                     st.write(f"Results for {selected_state}:")
                     st.json(state_data)
+                    entries_to_convert = state_data
                 else:
                     st.warning("Selected state not found in the data.")
+                    entries_to_convert = []
             else:
                 st.write("National Results:")
                 st.json(election_data.get("elections", []))
+                entries_to_convert = election_data.get("elections", [])
+
+            # TEST: Convert election data to spreadsheet format
+            # Make sure this indentation matches the block it belongs to
+            st.subheader("🧪 Test Spreadsheet Conversion")
+
+            spreadsheet_rows = []
+            for entry in entries_to_convert:
+                state = entry.get("state", "Unknown")
+                for cand in entry.get("cands", []):
+                    spreadsheet_rows.append({
+                        "State": state,
+                        "Candidate": cand.get("name", ""),
+                        "Party": cand.get("party", ""),
+                        "Votes": cand.get("votes", 0),
+                        "Incumbent": cand.get("incumbent", False),
+                        "Caucus": cand.get("caucus", ""),
+                    })
+
+            if spreadsheet_rows:  # Ensure proper indentation
+                df_test = pd.DataFrame(spreadsheet_rows)
+                st.dataframe(df_test)
+            else:
+                st.warning("No data available to convert for spreadsheet.")
+
         else:
             # For other election types, display the data directly
-            st.write(f"{selected_election_type} Results:")
-            st.json(election_data.get("elections", []))
+        st.write(f"{selected_election_type} Results:")
+        st.json(election_data.get("elections", []))
     else:
         st.warning(f"No data available for {selected_election_type}.")
 else:
