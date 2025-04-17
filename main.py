@@ -160,7 +160,7 @@ st.download_button(
 )
   
                         else:
-                            st.warning("No county-level data found.")
+                        st.warning("No county-level data found.")
                 else:
                     st.warning("Selected state not found.")
             else:
