@@ -5,7 +5,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from io import BytesIO
 
-
+party_codes = {"D": "Democratic", "R": "Republican", "I": "Independent"}
 
 # Initialize session
 if "election_data" not in st.session_state:
