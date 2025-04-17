@@ -107,28 +107,34 @@ if st.session_state["election_data"]:
                             ws = wb.active
                             ws.title = f"{state_code} County Results"
 
-                            # === Create party blocks ===
-                            party_codes = {"D": "Democratic", "R": "Republican", "I": "Independent"}
+                            # === Create party blocks dynamically from candidates ===
+                            party_labels = {"D": "Democratic", "R": "Republican", "I": "Independent"}
+
                             candidates = state_entry.get("cands", [])
-                            party_map = {c["party"]: c["name"] for c in candidates}
-                            parties = [p for p in ["D", "R", "I"] if p in party_map]
-                            
+                            party_to_candidates = {}
+
+                            for cand in candidates:
+                                party = cand["party"]
+                                if party not in party_to_candidates:
+                                    party_to_candidates[party] = []
+                                party_to_candidates[party].append(cand["name"])
+
+                            party_order = list(party_to_candidates.keys())
+
                             # === Header rows ===
-                            # Row 1: merged party headers
-                            col = 2
-                            for party in parties:
-                                ws.cell(row=1, column=col, value=party_codes.get(party, party))
-                                ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
-                                col += 2
-                            
-                            ws.cell(row=1, column=col, value="Margins & Rating")
-                            ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
-                            
-                            # Row 2: subheaders
                             ws.cell(row=2, column=1, value="County")
                             col = 2
-                            for party in parties:
-                                ws.cell(row=2, column=col, value=party_map.get(party, ""))
+
+                            for party in party_order:
+                                full_party_name = party_labels.get(party, party)
+                                ws.cell(row=1, column=col, value=full_party_name)
+                                ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
+
+                                candidate_names = party_to_candidates[party]
+                                if candidate_names:
+                                    ws.cell(row=2, column=col, value=candidate_names[0])
+                                else:
+                                    ws.cell(row=2, column=col, value="Candidate")
                                 ws.cell(row=2, column=col + 1, value="%")
                                 col += 2
                             
@@ -149,7 +155,8 @@ if st.session_state["election_data"]:
                             row_idx = 3
                             
                             for county in counties:
-                                ws.cell(row=row_idx, column=1, value=county.get("name", ""))
+                                clean_name = county.get("name", "Unknown County").replace(" County", "").title()
+                                ws.cell(row=row_idx, column=1, value=clean_name)
                                 county_votes = {c["party"]: round(c["votes"], 2) for c in county.get("cands", [])}
                                 total_vote = sum(county_votes.values())
                                 vote_values = []
@@ -173,7 +180,7 @@ if st.session_state["election_data"]:
                             
                                 ws.cell(row=row_idx, column=col, value="{:,}".format(margin))
                                 ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
-                                ws.cell(row=row_idx, column=col + 2, value="{:,}".format(total_vote))
+                                ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(total_vote))))
                                 ws.cell(row=row_idx, column=col + 3, value=rating_label)
                                 row_idx += 1
                             
@@ -183,9 +190,9 @@ if st.session_state["election_data"]:
                             col = 2
                             sorted_totals = [(p, totals[p]) for p in parties]
                             for party in parties:
-                                v = totals[party]
+                                v = int(round(totals[party]))
                                 pct = round(v / grand_total * 100, 2) if grand_total else 0
-                                ws.cell(row=row_idx, column=col, value=v)
+                                ws.cell(row=row_idx, column=col, value="{:,}".format(v))
                                 ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(pct))
                                 col += 2
                             
@@ -198,7 +205,7 @@ if st.session_state["election_data"]:
                             
                             ws.cell(row=row_idx, column=col, value="{:,}".format(margin))
                             ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
-                            ws.cell(row=row_idx, column=col + 2, value="{:,}".format(grand_total))
+                            ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(grand_total))))
                             ws.cell(row=row_idx, column=col + 3, value=rating_label)
                         
                         from openpyxl.styles import Font
@@ -216,7 +223,7 @@ if st.session_state["election_data"]:
                         st.download_button(
                             label="📥 Download County-Level Spreadsheet",
                             data=file_stream,
-                            file_name=f"{state_code}_county_results.xlsx",
+                            file_name=f"{state_code}_{selected_election_type.replace(' ', '')}_County_Results.xlsx"
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                             key=f"county_download_{state_code}"
                         )
