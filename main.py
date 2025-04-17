@@ -223,7 +223,7 @@ if st.session_state["election_data"]:
                         st.download_button(
                             label="📥 Download County-Level Spreadsheet",
                             data=file_stream,
-                            file_name=f"{state_code}_{selected_election_type.replace(' ', '')}_County_Results.xlsx"
+                            file_name=f"{state_code}_{selected_election_type.replace(' ', '')}_County_Results.xlsx",
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                             key=f"county_download_{state_code}"
                         )
