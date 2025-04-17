@@ -1,3 +1,4 @@
+
 import streamlit as st
 import json
 
@@ -30,8 +31,6 @@ if uploaded_file:
         st.error(f"Failed to load file: {e}")
 else:
     st.info("Please upload a JSON savefile.")
-
-import streamlit as st
 
 # Define mapping from state codes to full names
 state_code_to_name = {
@@ -67,7 +66,7 @@ selected_election_type = st.selectbox("Select Election Type", list(election_type
 election_key = election_types[selected_election_type]
 
 if "election_data" not in st.session_state:
-st.session_state["election_data"] = {}
+    st.session_state["election_data"] = {}
 
 # Check if the selected election type exists in the data
 if election_key in st.session_state["election_data"]:
@@ -104,5 +103,3 @@ if election_key in st.session_state["election_data"]:
         st.json(election_data.get("elections", []))
 else:
     st.warning(f"No data available for {selected_election_type}.")
-
-
