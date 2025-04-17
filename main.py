@@ -61,12 +61,12 @@ if st.session_state["election_data"]:
     }
 
         # Limit to only election types present in the current JSON
-        available_election_types = [etype for etype, ekey in election_types.items() if ekey in st.session_state["election_data"]]
+    available_election_types = [etype for etype, ekey in election_types.items() if ekey in st.session_state["election_data"]]
 
-        if available_election_types:
-            selected_election_type = st.selectbox("Select Election Type", available_election_types)
-            election_key = election_types[selected_election_type]
-            election_data = st.session_state["election_data"][election_key]
+    if available_election_types:
+        selected_election_type = st.selectbox("Select Election Type", available_election_types)
+        election_key = election_types[selected_election_type]
+        election_data = st.session_state["election_data"][election_key]
 
         # For President, Senate, and Governor, provide a secondary dropdown for state selection
         if selected_election_type in ["President", "Senate", "Governor"]:
