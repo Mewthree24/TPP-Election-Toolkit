@@ -1,11 +1,15 @@
-
 import streamlit as st
 import json
+import pandas as pd
+
+# ⬇ Make sure session key is initialized
+if "election_data" not in st.session_state:
+    st.session_state["election_data"] = {}
 
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
-
 st.title("🗳️ TPP Election Toolkit")
 
+# 🗂 Upload logic stays at the top
 uploaded_file = st.file_uploader("Upload your savefile", type=["json"])
 
 if uploaded_file:
@@ -13,24 +17,31 @@ if uploaded_file:
         raw_data = uploaded_file.read()
         data = json.loads(raw_data)
 
-        # Top-level keys we care about
         wanted_keys = [
             "electNightSB", "electNightCC", "electNightM",
             "electNightStH", "electNightStS", "electNightG",
             "electNightUSH", "electNightUSS", "electNightP"
         ]
 
-        # Grab only what's present
         extracted_data = {k: data[k] for k in wanted_keys if k in data}
-
-        st.success("Election data extracted from top-level.")
-        st.write("Included election types:", list(extracted_data.keys()))
         st.session_state["election_data"] = extracted_data
+
+        st.success("Election data extracted successfully.")
 
     except Exception as e:
         st.error(f"Failed to load file: {e}")
+
+# 🧼 This ensures the rest only shows *after upload*
+if st.session_state["election_data"]:
+    # ✅ Put your election selector menu code HERE
+    # Including state mapping, election type dropdown, conditional state dropdown, etc.
+    pass
 else:
     st.info("Please upload a JSON savefile.")
+
+if "election_data" in st.session_state and st.session_state["election_data"]:
+# Election selector + dropdowns + previews go here
+
 
 # Define mapping from state codes to full names
 state_code_to_name = {
