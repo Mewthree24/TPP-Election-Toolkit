@@ -116,8 +116,8 @@ if st.session_state["election_data"]:
                             parties = [p for p in party_order if p in parties_present]
 
 # Header row 1: additional header for "Margins & Rating"
-ws.cell(row=1, column=col, value="Margins & Rating") 
-ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
+                            ws.cell(row=1, column=col, value="Margins & Rating") 
+                            ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
 
                             # Header row 2
                             col = 1
