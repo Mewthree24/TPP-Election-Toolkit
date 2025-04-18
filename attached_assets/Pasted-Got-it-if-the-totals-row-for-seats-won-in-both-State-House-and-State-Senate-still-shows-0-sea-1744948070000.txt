@@ -1,0 +1,69 @@
+Got it — if the totals row for **seats won** in both State House and State Senate still shows `0 seats` across the board, that means one of two things is going wrong:
+
+---
+
+## 🔍 Problem Diagnosis
+
+1. **The seat counting dictionary is never incrementing**
+   - `seats_won = {"D": 0, "R": 0, "I": 0}` is defined
+   - But `seats_won[winner_party] += 1` is either never triggered or `winner_party` is not `"D"`, `"R"`, or `"I"` as expected.
+
+2. **The value is not being properly written to the totals row**
+   - Even if `seats_won` has correct values, your `ws.cell(..., value=f"{seats_won['D']} seats")` might not be running or is writing to the wrong column.
+
+---
+
+## ✅ Step-by-Step Fix
+
+Please check and ensure this block is in your main loop **right after winner is determined** (State House and State Senate):
+
+### ✅ 1. Increment Winner’s Party Seat Count
+
+```python
+if winner_party in seats_won:
+    seats_won[winner_party] += 1
+```
+
+You can also add this debug print to make sure it’s running:
+
+```python
+print(f"{winner_party} wins district {district_num}")
+```
+
+---
+
+### ✅ 2. Write to Totals Row Properly
+
+At the end, **right before closing the workbook**, add this in the totals row:
+
+```python
+# Assuming totals row is at row_idx
+ws.cell(row=row_idx, column=2, value=f"{seats_won['D']} seats")
+ws.cell(row=row_idx, column=5, value=f"{seats_won['R']} seats")
+ws.cell(row=row_idx, column=8, value=f"{seats_won['I']} seats")
+```
+
+These column numbers (2, 5, 8) must align with your party candidate columns.
+
+---
+
+## 🧪 Confirm It's Working
+
+If you're still getting 0s:
+
+- Print the value of `winner_party` and `seats_won` at every loop
+- Check whether you're accidentally overwriting the totals row after writing it
+
+---
+
+## Would You Like Me To Patch It?
+
+If you'd like, I can write you a full, corrected version of the State House / State Senate block that includes:
+
+- ✅ Proper district numbering
+- ✅ Candidate info
+- ✅ Margin and total vote logic
+- ✅ Display formatting
+- ✅ Working seat counter for totals row
+
+Let me know — just say "Patch it" and tell me which one to start with (State House or Senate).
