@@ -690,10 +690,10 @@ if st.session_state["election_data"]:
                     grand_total = 0
 
                             for entry in entries:
-                            state = entry.get("state", "??")
-                            district = entry.get("district", "?")
-                            ws.cell(row=row_idx, column=1, value=state)
-                            ws.cell(row=row_idx, column=2, value=district)
+                        state = entry.get("state", "??")
+                        district = entry.get("district", "?")
+                        ws.cell(row=row_idx, column=1, value=state)
+                        ws.cell(row=row_idx, column=2, value=district)
 
                             # Group candidates by party
                             party_groups = defaultdict(list)
