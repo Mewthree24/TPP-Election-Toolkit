@@ -825,8 +825,6 @@ if st.session_state["election_data"]:
                         excel_rows.append(list(row))
 
                     header_row = []
-                    data_rows = []
-
                     if len(excel_rows) >= 2:
                         row1 = excel_rows[0]
                         row2 = excel_rows[1]
@@ -852,17 +850,16 @@ if st.session_state["election_data"]:
                             header_row.append(label)
 
                     data_rows = excel_rows[2:]
+                    df_display = pd.DataFrame(data_rows, columns=header_row)
 
-                    if header_row and data_rows:
-                        df_display = pd.DataFrame(data_rows, columns=header_row)
-                        st.dataframe(df_display, use_container_width=True)
+                    st.dataframe(df_display, use_container_width=True)
 
                     st.download_button(
                         label=f"📥 Download {selected_election_type} Spreadsheet",
                         data=file_stream,
-                        file_name=f"{selected_election_type}_National_View.xlsx",
+                        file_name=f"{selected_election_type.replace(' ', '_')}_National_View.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        key=f"{selected_election_type.lower()}_national_view"
+                        key=f"{selected_election_type.lower().replace(' ', '_')}_national_view"
                     )
 
 
@@ -877,7 +874,7 @@ if st.session_state["election_data"]:
             entries = election_data.get("elections", [])
             party_labels = {"D": "Democratic", "R": "Republican", "I": "Independent"}
             party_order = ["D", "R", "I"]
-            seats_won = {party: 0 for party in party_order}
+            seats_won = defaultdict(int)
 
             # === Header Rows ===
             ws.cell(row=2, column=1, value="District")
@@ -928,8 +925,7 @@ if st.session_state["election_data"]:
                     if c.get("pw", False):
                         winner = c["name"]
                         winner_party = c["party"] 
-                        if winner_party in seats_won:
-                            seats_won[winner_party] += 1
+                        seats_won[winner_party] += 1
                         break
 
                 # Prepare vote summary by party
