@@ -666,7 +666,7 @@ if st.session_state["election_data"]:
                     col = 3
                     for party in party_order:
                         ws.cell(row=1, column=col, value=party_labels[party])
-                            ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 2)
+                        ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 2)
                         ws.cell(row=2, column=col, value="Candidate")
                         ws.cell(row=2, column=col + 1, value="#")
                         ws.cell(row=2, column=col + 2, value="%")
