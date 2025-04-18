@@ -1144,6 +1144,13 @@ if st.session_state["election_data"]:
                 with open(svg_path, "r", encoding="utf-8") as f:
                     soup = BeautifulSoup(f.read(), "xml")
 
+                # Create rating colors mapping from user selections
+                rating_colors = {}
+                for party in colors:
+                    for rating_type, color in colors[party].items():
+                        rating_label = f"{rating_type} {party_labels.get(party, party)}"
+                        rating_colors[rating_label] = color
+
                 # === Generate region-color mapping ===
                 region_colors = {}
                 if selected_state == "National View":
