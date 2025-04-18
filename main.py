@@ -1127,7 +1127,7 @@ if st.session_state["election_data"]:
                 st.error(f"SVG map for this selection not found: {svg_path}")
             else:
                 with open(svg_path, "r", encoding="utf-8") as f:
-                    soup = BeautifulSoup(f.read(), "xml")
+                    soup = BeautifulSoup(f.read(), "lxml-xml")
 
                 # Extract data from df
                 if 'df_display' in locals():
