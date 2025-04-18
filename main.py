@@ -288,12 +288,12 @@ if st.session_state["election_data"]:
                     ws = wb.active
                     ws.title = "Presidential National View"
 
-                        candidates = []
+                    candidates = []
                     party_labels = {"D": "Democratic", "R": "Republican", "I": "Independent"}
                     party_to_candidate = {}
 
-                        # Extract candidate names and parties
-                        if entries_to_convert:
+                    # Extract candidate names and parties
+                    if entries_to_convert:
                             first_entry = entries_to_convert[0]
                             for cand in first_entry.get("cands", []):
                                 party = cand["party"]
