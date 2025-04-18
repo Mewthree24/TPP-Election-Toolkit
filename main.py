@@ -1070,7 +1070,11 @@ if st.session_state["election_data"]:
 # === MAP GENERATION UI & LOGIC (SVG-based) ===
     st.sidebar.header("🗺️ Map Generator Settings")
 
-    if "election_data" in st.session_state and selected_election_type and selected_state:
+    if (
+    "election_data" in st.session_state
+    and selected_election_type in ["President", "Senate", "Governor"]
+    and selected_state
+):
         with st.sidebar.expander("Map Settings"):
             st.markdown("### Margin Thresholds")
             use_margin_shading = st.checkbox("Use Margin-Based Shading", value=True)
