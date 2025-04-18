@@ -1155,15 +1155,19 @@ if st.session_state["election_data"]:
                 region_colors = {}
                 if selected_state == "National View":
                     for _, row in df_display.iterrows():
-                        region_id = row["State"]
-                        rating = row.get("Rating", "")
-                        region_colors[region_id.lower()] = rating_colors.get(rating, "#cccccc")
+                        if "State" in row.index:
+                            region_id = row["State"]
+                            rating_col = next((col for col in row.index if "Rating" in col), None)
+                            rating = row.get(rating_col, "") if rating_col else ""
+                            if region_id:
+                                region_colors[str(region_id).lower()] = rating_colors.get(rating, "#cccccc")
                 else:
                     for _, row in df_display.iterrows():
-                        county_name = row.get("County")
-                        rating = row.get("Rating", "")
+                        county_name = row.get("County", None)
+                        rating_col = next((col for col in row.index if "Rating" in col), None)
+                        rating = row.get(rating_col, "") if rating_col else ""
                         if county_name and rating:
-                            county_id = county_name.strip().lower().replace(" county", "").replace(" ", "-").replace("'", "")
+                            county_id = str(county_name).strip().lower().replace(" county", "").replace(" ", "-").replace("'", "")
                             region_colors[county_id] = rating_colors.get(rating, "#cccccc")
                     for _, row in df_display.iterrows():
                         state_name = row.get("State", "").strip()
