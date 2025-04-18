@@ -921,15 +921,14 @@ if st.session_state["election_data"]:
                     party_groups[c["party"]].append(c)
 
                 # Find winner
-                # Find winner
-                all_cands = sorted(entry.get("cands", []), key=lambda x: x["votes"], reverse=True)
                 winner = None
                 winner_party = None
                 for c in entry.get("cands", []):
                     if c.get("pw", False):
                         winner = c["name"]
-                        winner_party = c["party"]
-                        seats_won[winner_party] = seats_won.get(winner_party, 0) + 1
+                        winner_party = c["party"] 
+                        if winner_party in seats_won:
+                            seats_won[winner_party] += 1
                         break
 
                 # Prepare vote summary by party
