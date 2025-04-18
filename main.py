@@ -695,45 +695,45 @@ if st.session_state["election_data"]:
                         ws.cell(row=row_idx, column=1, value=state)
                         ws.cell(row=row_idx, column=2, value=district)
 
-                            # Group candidates by party
-                            party_groups = defaultdict(list)
-                            for c in entry.get("cands", []):
-                                party_groups[c["party"]].append(c)
+                        # Group candidates by party
+                        party_groups = defaultdict(list)
+                        for c in entry.get("cands", []):
+                            party_groups[c["party"]].append(c)
 
-                            # Determine winner
-                            all_cands = sorted(entry.get("cands", []), key=lambda x: x["votes"], reverse=True)
+                        # Determine winner
+                        all_cands = sorted(entry.get("cands", []), key=lambda x: x["votes"], reverse=True)
                             winner = all_cands[0]["name"] if all_cands else None
                             winner_party = all_cands[0]["party"] if all_cands else None
 
                             # Prepare vote summary by party
-                            party_votes = {}
-                            party_names = {}
-                            total_vote = sum(c["votes"] for c in entry.get("cands", []))
+                        party_votes = {}
+                        party_names = {}
+                        total_vote = sum(c["votes"] for c in entry.get("cands", []))
 
-                            for party in party_order:
-                                candidates = sorted(party_groups.get(party, []), key=lambda x: x["votes"], reverse=True)
-                                if not candidates:
-                                    party_names[party] = ""
-                                    party_votes[party] = 0
-                                    continue
+                        for party in party_order:
+                            candidates = sorted(party_groups.get(party, []), key=lambda x: x["votes"], reverse=True)
+                            if not candidates:
+                                party_names[party] = ""
+                                party_votes[party] = 0
+                                continue
 
-                                if len(candidates) == 1:
+                            if len(candidates) == 1:
+                                party_names[party] = candidates[0]["name"]
+                                party_votes[party] = candidates[0]["votes"]
+                            else:
+                                if candidates[0]["name"] == winner:
+                                    combined = sum(c["votes"] for c in candidates)
+                                    party_names[party] = candidates[0]["name"]
+                                    party_votes[party] = combined
+                                else:
                                     party_names[party] = candidates[0]["name"]
                                     party_votes[party] = candidates[0]["votes"]
-                                else:
-                                    if candidates[0]["name"] == winner:
-                                        combined = sum(c["votes"] for c in candidates)
-                                        party_names[party] = candidates[0]["name"]
-                                        party_votes[party] = combined
-                                    else:
-                                        party_names[party] = candidates[0]["name"]
-                                        party_votes[party] = candidates[0]["votes"]
-                                        # Move lowest-vote candidate to Independent
-                                        lowest = candidates[-1]
-                                        party_names["I"] = lowest["name"]
-                                        party_votes["I"] += lowest["votes"]
+                                    # Move lowest-vote candidate to Independent
+                                    lowest = candidates[-1]
+                                    party_names["I"] = lowest["name"]
+                                    party_votes["I"] += lowest["votes"]
 
-                            col_idx = 3
+                        col_idx = 3
                             for party in party_order:
                                 name = party_names.get(party, "")
                                 votes = int(round(party_votes.get(party, 0)))
