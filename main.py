@@ -80,6 +80,7 @@ if st.session_state["election_data"]:
             entries = election_data.get("elections", [])
             party_labels = {"D": "Democratic", "R": "Republican", "I": "Independent"}
             party_order = ["D", "R", "I"]
+            seats_won = {party: 0 for party in party_order} # Added to track seats won
 
             # === Header Rows ===
             ws.cell(row=2, column=1, value="State")
@@ -183,6 +184,9 @@ if st.session_state["election_data"]:
                 ws.cell(row=row_idx, column=col_idx + 2, value=f"{int(round(total_vote)):,}")
                 ws.cell(row=row_idx, column=col_idx + 3, value=rating_label)
 
+                if winner_party:
+                    seats_won[winner_party] +=1 #update seats won
+
                 grand_total += total_vote
                 row_idx += 1
 
@@ -193,21 +197,10 @@ if st.session_state["election_data"]:
             for party in party_order:
                 total = totals[party]
                 pct = round(total / grand_total * 100, 2) if grand_total else 0
-                ws.cell(row=row_idx, column=col_idx, value="")
+                ws.cell(row=row_idx, column=col_idx, value=f"{seats_won[party]} seats")
                 ws.cell(row=row_idx, column=col_idx + 1, value=f"{total:,}")
                 ws.cell(row=row_idx, column=col_idx + 2, value=f"{pct:.2f}%")
                 col_idx += 3
-
-            sorted_totals = sorted(totals.items(), key=lambda x: x[1], reverse=True)
-            margin_total = sorted_totals[0][1] - (sorted_totals[1][1] if len(sorted_totals) > 1 else 0)
-            margin_pct_total = round(margin_total / grand_total * 100, 2) if grand_total else 0
-            rating = "Tilt" if margin_pct_total < 1 else "Lean" if margin_pct_total < 5 else "Likely" if margin_pct_total < 10 else "Safe"
-            rating_label = f"{rating} {party_labels.get(sorted_totals[0][0], sorted_totals[0][0])}"
-
-            ws.cell(row=row_idx, column=col_idx, value=f"{margin_total:,}")
-            ws.cell(row=row_idx, column=col_idx + 1, value=f"{margin_pct_total:.2f}%")
-            ws.cell(row=row_idx, column=col_idx + 2, value=f"{int(round(grand_total)):,}")
-            ws.cell(row=row_idx, column=col_idx + 3, value=rating_label)
 
             for c in range(1, col_idx + 4):
                 ws.cell(row=row_idx, column=c).font = Font(bold=True)
@@ -637,7 +630,7 @@ if st.session_state["election_data"]:
                             elif col2:
                                 label = str(col2)
                             else:
-                                label = "Unnamed"
+                                label ="Unnamed"
 
                             if label in used_names:
                                 count = used_names[label] + 1
