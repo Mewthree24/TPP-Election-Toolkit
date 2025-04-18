@@ -1215,7 +1215,17 @@ if st.session_state["election_data"]:
                     for _, row in df_map.iterrows():
                         region_id = None
                         if selected_election_type in ["President", "Senate", "Governor"]:
-                            region_id = row["State"]
+                            # Try to dynamically find the correct State column
+                            try:
+                                if "State" in row:
+                                    region_id = row["State"]
+                                else:
+                                    state_col = next((col for col in row.index if "state" in str(col).lower()), None)
+                                    region_id = row[state_col] if state_col else "Unknown"
+                            except Exception as e:
+                                st.error(f"Error determining state column: {e}")
+                                region_id = "Unknown"
+
                         elif selected_election_type in ["U.S. House", "State House", "State Senate"]:
                             region_id = str(row["County"]).replace(" ", "_").lower() if "County" in row else None
                         else:

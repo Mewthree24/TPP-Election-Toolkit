@@ -1,0 +1,87 @@
+import os
+import pandas as pd
+from bs4 import BeautifulSoup
+from bs4 import XMLParsedAsHTMLWarning
+import warnings
+import streamlit as st
+
+warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+
+def generate_colored_svg(df, election_type, selected_state):
+    rating_colors = {
+        "Safe Democratic": "#1C408C",
+        "Likely Democratic": "#577CCC",
+        "Lean Democratic": "#8AAFFF",
+        "Tilt Democratic": "#949BB3",
+        "Safe Republican": "#BF1D29",
+        "Likely Republican": "#FF5865",
+        "Lean Republican": "#FF8B98",
+        "Tilt Republican": "#CF8980"
+    }
+
+    # Determine SVG file
+    if selected_state == "National View":
+        if election_type == "President":
+            svg_file = "presidential.svg"
+        elif election_type in ["Senate", "Governor"]:
+            svg_file = "states.svg"
+        else:
+            return None, "No national view map available for this election type."
+    else:
+        state_code = next((code for code, name in state_code_to_name.items() if name == selected_state), None)
+        if not state_code:
+            return None, f"Unknown state: {selected_state}"
+        svg_file = f"{state_code.lower()}.svg"
+
+    svg_path = os.path.join("svg", svg_file)
+    if not os.path.exists(svg_path):
+        return None, f"SVG file not found: {svg_file}"
+
+    with open(svg_path, "r", encoding="utf-8") as f:
+        soup = BeautifulSoup(f.read(), "html.parser")
+
+    # Normalize keys
+    if "County" in df.columns:
+        df["County"] = df["County"].astype(str).str.replace(" County", "").str.replace(" ", "_").str.lower()
+        key_col = "County"
+    elif "State" in df.columns:
+        df["State"] = df["State"].astype(str).str.lower()
+        key_col = "State"
+    else:
+        return None, "Could not find a 'County' or 'State' column."
+
+    region_colors = {}
+    for _, row in df.iterrows():
+        key = row[key_col]
+        rating = row.get("Rating", "")
+        if isinstance(rating, str) and rating in rating_colors:
+            region_colors[key] = rating_colors[rating]
+
+    for path in soup.find_all("path"):
+        region_id = path.get("id", "").lower()
+        if region_id in region_colors:
+            color = region_colors[region_id]
+            path["style"] = f"fill:{color};stroke:#000000;stroke-width:0.5"
+
+    soup.svg["style"] = "background-color:black"
+    return str(soup), None
+
+def display_svg(svg_output, selected_state, selected_election_type):
+    st.subheader("\U0001F5FA\ufe0f Live Map Preview")
+    st.components.v1.html(
+        f"""
+        <div style='width: 100%; height: 100%; display: flex; justify-content: center;'>
+            <div style='max-width: 100%; height: auto;'>
+                {svg_output}
+            </div>
+        </div>
+        """,
+        height=800,
+        scrolling=False
+    )
+    st.download_button(
+        label="\U0001F4C5 Download Map",
+        data=svg_output,
+        file_name=f"{selected_state}_{selected_election_type}_Map.svg",
+        mime="image/svg+xml"
+    )
