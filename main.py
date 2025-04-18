@@ -671,6 +671,7 @@ if st.session_state["election_data"]:
                     entries = election_data.get("elections", [])
                     party_labels = {"D": "Democratic", "R": "Republican", "I": "Independent"}
                     party_order = ["D", "R", "I"]
+                    seats_won = {party: 0 for party in party_order}
 
                     # === Header Rows ===
                     ws.cell(row=2, column=1, value="State")
@@ -763,8 +764,11 @@ if st.session_state["election_data"]:
                         sorted_votes = sorted(party_votes.items(), key=lambda x: x[1], reverse=True)
                         margin = int(round(sorted_votes[0][1] - (sorted_votes[1][1] if len(sorted_votes) > 1 else 0)))
                         margin_pct = round(margin / total_vote * 100, 2) if total_vote else 0
+                        winner_party = sorted_votes[0][0]
+                        if winner_party in seats_won:
+                            seats_won[winner_party] += 1
                         rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
-                        rating_label = f"{rating} {party_labels.get(sorted_votes[0][0], sorted_votes[0][0])}"
+                        rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
 
                         ws.cell(row=row_idx, column=col_idx, value=f"{margin:,}")
                         ws.cell(row=row_idx, column=col_idx + 1, value=f"{margin_pct:.2f}%")
@@ -780,7 +784,7 @@ if st.session_state["election_data"]:
                     for party in party_order:
                         total = totals[party]
                         pct = round(total / grand_total * 100, 2) if grand_total else 0
-                        ws.cell(row=row_idx, column=col_idx, value="")
+                        ws.cell(row=row_idx, column=col_idx, value=f"{seats_won[party]} seats")
                         ws.cell(row=row_idx, column=col_idx + 1, value=f"{total:,}")
                         ws.cell(row=row_idx, column=col_idx + 2, value=f"{pct:.2f}%")
                         col_idx += 3
