@@ -905,14 +905,10 @@ if st.session_state["election_data"]:
             totals = {party: 0 for party in party_order}
             grand_total = 0
 
+            district_counter = 1
             for entry in entries:
-                district = entry.get("district", "")
-                # Format district number
-                try:
-                    district_num = int(district)
-                    ws.cell(row=row_idx, column=1, value=district_num)
-                except (ValueError, TypeError):
-                    ws.cell(row=row_idx, column=1, value=str(district))
+                ws.cell(row=row_idx, column=1, value=district_counter)
+                district_counter += 1
 
                 # Group candidates by party
                 party_groups = defaultdict(list)
