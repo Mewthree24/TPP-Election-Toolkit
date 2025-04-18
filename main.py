@@ -649,6 +649,8 @@ if st.session_state["election_data"]:
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         key=f"{selected_election_type.lower()}_national_view"
                     )
+
+        
         # === U.S. House National View Spreadsheet Generator ===
         elif selected_election_type == "U.S. House":
             from collections import defaultdict
@@ -710,7 +712,7 @@ if st.session_state["election_data"]:
                 party_names = {}
                 total_vote = sum(c["votes"] for c in entry.get("cands", []))
 
-                    for party in party_order:
+                for party in party_order:
                     candidates = sorted(party_groups.get(party, []), key=lambda x: x["votes"], reverse=True)
                     if not candidates:
                         party_names[party] = ""
@@ -780,13 +782,14 @@ if st.session_state["election_data"]:
                     for c in range(1, col_idx + 4):
                         ws.cell(row=row_idx, column=c).font = Font(bold=True)
 
-                    # === Streamlit Display ===
+                    # === Streamlit Display (ONLY ONCE) ===
                     from io import BytesIO
                     st.subheader("🧾 U.S. House National View")
                     file_stream = BytesIO()
                     wb.save(file_stream)
                     file_stream.seek(0)
 
+                    # Convert worksheet to displayable rows
                     excel_rows = []
                     for row in ws.iter_rows(min_row=1, max_row=ws.max_row, values_only=True):
                         excel_rows.append(list(row))
@@ -820,11 +823,12 @@ if st.session_state["election_data"]:
 
                         data_rows = excel_rows[2:]
 
+                    # Show dataframe
                     if header_row and data_rows:
-                        df_display = pd.DataFrame(data_rows)
-                        df_display.columns = header_row
+                        df_display = pd.DataFrame(data_rows, columns=header_row)
                         st.dataframe(df_display, use_container_width=True)
 
+                    # Download button — ONLY ONCE
                     st.download_button(
                         label="📥 Download House Spreadsheet",
                         data=file_stream,
