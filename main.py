@@ -7,6 +7,7 @@ from io import BytesIO
 from collections import defaultdict
 from bs4 import BeautifulSoup
 import os
+import lxml
 
 # Initialize session
 if "election_data" not in st.session_state:
