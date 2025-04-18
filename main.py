@@ -689,7 +689,7 @@ if st.session_state["election_data"]:
                     totals = {party: 0 for party in party_order}
                     grand_total = 0
 
-                        for entry in entries:
+                            for entry in entries:
                             state = entry.get("state", "??")
                             district = entry.get("district", "?")
                             ws.cell(row=row_idx, column=1, value=state)
