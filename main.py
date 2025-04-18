@@ -910,21 +910,15 @@ if st.session_state["election_data"]:
                 ws.cell(row=row_idx, column=1, value=district_counter)
                 district_counter += 1
 
-                # Group candidates by party
+                # Group candidates by party and find winner
                 party_groups = defaultdict(list)
                 for c in entry.get("cands", []):
                     party_groups[c["party"]].append(c)
-
-                # Find winner
-                winner = None
-                winner_party = None
-                for c in entry.get("cands", []):
+                    # Update seats won if this candidate is the winner
                     if c.get("pw", False):
                         winner = c["name"]
                         winner_party = c["party"]
-                        if winner_party in seats_won:
-                            seats_won[winner_party] += 1
-                        break
+                        seats_won[winner_party] += 1
 
                 # Prepare vote summary by party
                 party_votes = {}
