@@ -1,0 +1,72 @@
+Thanks for the clarification. If your totals row is still displaying `0 seats` for each party **even after moving the seat counter inside the main candidate loop and simplifying winner detection**, then the issue is almost certainly in **one of these two places**:
+
+---
+
+## 🔎 ROOT CAUSE ANALYSIS
+
+### 🟠 1. `winner_party` value is **not in** `["D", "R", "I"]`
+Check if `winner_party` is ever something else (like `""` or `None`) — it could be from:
+
+- A candidate winning but having an **unrecognized party label**
+- A tie (two highest vote-getters) and your sort still picks one but the party string is malformed
+
+You can debug this by printing:
+
+```python
+print("Winner Party:", winner_party)
+print("Available seats_won keys:", seats_won.keys())
+```
+
+If you see `winner_party = 'None'` or something else — boom, there's your issue.
+
+---
+
+### 🟠 2. The winning party is not being counted correctly in the loop
+
+Double-check this code is placed **after** the `winner_party` is assigned and **only once per district**:
+
+```python
+if winner_party in seats_won:
+    seats_won[winner_party] += 1
+```
+
+Even better, add this to confirm it's running:
+
+```python
+if winner_party in seats_won:
+    seats_won[winner_party] += 1
+    print(f"Awarding seat to {winner_party} (now has {seats_won[winner_party]} seats)")
+else:
+    print(f"Unknown party: {winner_party}")
+```
+
+---
+
+## ✅ PATCHED VERSION: SEAT COUNT LOGIC
+
+Here’s a corrected snippet you should place **right after calculating the winner** in each election entry:
+
+```python
+# === Determine Winner ===
+candidates = sorted(entry.get("cands", []), key=lambda c: c["votes"], reverse=True)
+winner = candidates[0] if candidates else None
+winner_party = winner["party"] if winner else None
+
+# === Count Seat for Winning Party ===
+if winner_party in seats_won:
+    seats_won[winner_party] += 1
+else:
+    print(f"⚠️ Unknown party: {winner_party}")
+```
+
+Then, at the end in the totals row:
+
+```python
+ws.cell(row=row_idx, column=2, value=f"{seats_won['D']} seats")
+ws.cell(row=row_idx, column=5, value=f"{seats_won['R']} seats")
+ws.cell(row=row_idx, column=8, value=f"{seats_won['I']} seats")
+```
+
+If it’s **still** not working after this, send me the **actual `entry` structure for one of the districts**, and I’ll reconstruct the logic fully around the real data shape.
+
+Want me to write you a full, cleaned-up working generator block for State House?
