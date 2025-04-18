@@ -702,10 +702,10 @@ if st.session_state["election_data"]:
 
                         # Determine winner
                         all_cands = sorted(entry.get("cands", []), key=lambda x: x["votes"], reverse=True)
-                            winner = all_cands[0]["name"] if all_cands else None
-                            winner_party = all_cands[0]["party"] if all_cands else None
+                        winner = all_cands[0]["name"] if all_cands else None
+                        winner_party = all_cands[0]["party"] if all_cands else None
 
-                            # Prepare vote summary by party
+                        # Prepare vote summary by party
                         party_votes = {}
                         party_names = {}
                         total_vote = sum(c["votes"] for c in entry.get("cands", []))
@@ -734,17 +734,17 @@ if st.session_state["election_data"]:
                                     party_votes["I"] += lowest["votes"]
 
                         col_idx = 3
-                            for party in party_order:
-                                name = party_names.get(party, "")
-                                votes = int(round(party_votes.get(party, 0)))
-                                pct = round(votes / total_vote * 100, 2) if total_vote else 0
+                        for party in party_order:
+                            name = party_names.get(party, "")
+                            votes = int(round(party_votes.get(party, 0)))
+                            pct = round(votes / total_vote * 100, 2) if total_vote else 0
 
-                                ws.cell(row=row_idx, column=col_idx, value=name)
-                                ws.cell(row=row_idx, column=col_idx + 1, value=f"{votes:,}")
-                                ws.cell(row=row_idx, column=col_idx + 2, value=f"{pct:.2f}%")
+                            ws.cell(row=row_idx, column=col_idx, value=name)
+                            ws.cell(row=row_idx, column=col_idx + 1, value=f"{votes:,}")
+                            ws.cell(row=row_idx, column=col_idx + 2, value=f"{pct:.2f}%")
 
-                                totals[party] += votes
-                                col_idx += 3
+                            totals[party] += votes
+                            col_idx += 3
 
                             sorted_votes = sorted(party_votes.items(), key=lambda x: x[1], reverse=True)
                             margin = int(round(sorted_votes[0][1] - (sorted_votes[1][1] if len(sorted_votes) > 1 else 0)))
