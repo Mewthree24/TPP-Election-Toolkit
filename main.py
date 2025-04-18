@@ -614,7 +614,7 @@ if st.session_state["election_data"]:
                             col += 3
 
                         ws.cell(row=row_idx, column=col, value=f"{margin:,}")
-                        ws.cell(row=row_idx, column=col + 1, value=f"{marginpct:.2f}%")
+                        ws.cell(row=row_idx, column=col + 1, value=f"{margin_pct_total:.2f}%")
                         ws.cell(row=row_idx, column=col + 2, value=f"{int(round(grand_total)):,}")
                         ws.cell(row=row_idx, column=col +3, value=rating_label)
 
