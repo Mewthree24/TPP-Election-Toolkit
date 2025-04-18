@@ -1130,7 +1130,7 @@ if st.session_state["election_data"]:
                 else:
                     svg_file = f"{state_code.lower()}.svg"
 
-            svg_path = os.path.join("svg", svg_file)
+            svg_path = os.path.join("SVG", svg_file)
             if not os.path.exists(svg_path):
                 st.error(f"SVG file not found: {svg_file}")
             else:
