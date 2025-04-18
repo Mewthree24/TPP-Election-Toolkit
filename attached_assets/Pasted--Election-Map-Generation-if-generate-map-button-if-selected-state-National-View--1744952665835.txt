@@ -1,0 +1,61 @@
+# === Election Map Generation ===
+if generate_map_button:
+    if selected_state == "National View":
+        if selected_election_type == "President":
+            svg_path = "svg/presidential.svg"
+        elif selected_election_type in ["Senate", "Governor"]:
+            svg_path = "svg/states.svg"
+        else:
+            st.warning("Map generation is not available for this election type.")
+            st.stop()
+    else:
+        if selected_election_type in ["President", "Senate", "Governor"]:
+            state_code = selected_state.strip().lower()
+            svg_path = f"svg/{state_code}.svg"
+        else:
+            st.warning("Map generation is only available for President, Governor, or Senate races.")
+            st.stop()
+
+    try:
+        with open(svg_path, "r", encoding="utf-8") as f:
+            soup = BeautifulSoup(f.read(), "xml")
+    except FileNotFoundError:
+        st.error(f"SVG file for {selected_state} not found.")
+        st.stop()
+
+    # === Generate region-color mapping ===
+    region_colors = {}
+    if selected_state == "National View":
+        for _, row in df_display.iterrows():
+            region_id = row["State"]
+            rating = row.get("Rating", "")
+            region_colors[region_id.lower()] = rating_colors.get(rating, "#cccccc")
+    else:
+        for _, row in df_display.iterrows():
+            county_name = row.get("County")
+            rating = row.get("Rating", "")
+            if county_name and rating:
+                county_id = county_name.strip().lower().replace(" county", "").replace(" ", "-").replace("'", "")
+                region_colors[county_id] = rating_colors.get(rating, "#cccccc")
+
+    for path in soup.find_all("path"):
+        region_id = path.get("id")
+        if region_id and region_id.lower() in region_colors:
+            path["fill"] = region_colors[region_id.lower()]
+
+    svg_result = str(soup)
+    st.subheader("🗺️ Generated Election Map")
+    st.markdown("The map below shows current results with customized shading:")
+    st.components.v1.html(f"""
+        <div style='overflow: auto; width: 100%; height: 500px;'>
+            {svg_result}
+        </div>
+    """, height=550)
+
+    st.download_button(
+        label="📥 Download SVG Map",
+        data=svg_result,
+        file_name="election_map.svg",
+        mime="image/svg+xml",
+        key="map_download_btn"
+    )
