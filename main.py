@@ -686,29 +686,29 @@ if st.session_state["election_data"]:
                         cell.alignment = Alignment(horizontal="center")
 
                 row_idx = 3
-                totals = {party: 0 for party in party_order}
-                grand_total = 0
+            totals = {party: 0 for party in party_order}
+            grand_total = 0
 
-                for entry in entries:
-                    state = entry.get("state", "??")
-                    district = entry.get("district", "?")
-                    ws.cell(row=row_idx, column=1, value=state)
-                    ws.cell(row=row_idx, column=2, value=district)
+            for entry in entries:
+                state = entry.get("state", "??")
+                district = entry.get("district", "?")
+                ws.cell(row=row_idx, column=1, value=state)
+                ws.cell(row=row_idx, column=2, value=district)
 
-                    # Group candidates by party
-                    party_groups = defaultdict(list)
-                    for c in entry.get("cands", []):
-                        party_groups[c["party"]].append(c)
+                # Group candidates by party
+                party_groups = defaultdict(list)
+                for c in entry.get("cands", []):
+                    party_groups[c["party"]].append(c)
 
-                    # Determine winner
-                    all_cands = sorted(entry.get("cands", []), key=lambda x: x["votes"], reverse=True)
-                    winner = all_cands[0]["name"] if all_cands else None
-                    winner_party = all_cands[0]["party"] if all_cands else None
+                # Determine winner
+                all_cands = sorted(entry.get("cands", []), key=lambda x: x["votes"], reverse=True)
+                winner = all_cands[0]["name"] if all_cands else None
+                winner_party = all_cands[0]["party"] if all_cands else None
 
-                    # Prepare vote summary by party
-                    party_votes = {}
-                    party_names = {}
-                    total_vote = sum(c["votes"] for c in entry.get("cands", []))
+                # Prepare vote summary by party
+                party_votes = {}
+                party_names = {}
+                total_vote = sum(c["votes"] for c in entry.get("cands", []))
 
                     for party in party_order:
                         candidates = sorted(party_groups.get(party, []), key=lambda x: x["votes"], reverse=True)
