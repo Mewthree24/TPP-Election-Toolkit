@@ -1154,11 +1154,13 @@ if st.session_state["election_data"]:
                 # === Generate region-color mapping ===
                 region_colors = {}
                 if selected_state == "National View":
-                    for _, row in df_display.iterrows():
-                        if "State" in row.index:
-                            region_id = row["State"]
-                            rating_col = next((col for col in row.index if "Rating" in col), None)
-                            rating = row.get(rating_col, "") if rating_col else ""
+                    # Find the state column name
+                    state_col = next((col for col in df_display.columns if 'State' in col), None)
+                    if state_col:
+                        for _, row in df_display.iterrows():
+                            region_id = row[state_col]
+                            rating_col = next((col for col in df_display.columns if 'Rating' in col), None)
+                            rating = row[rating_col] if rating_col else ""
                             if region_id:
                                 region_colors[str(region_id).lower()] = rating_colors.get(rating, "#cccccc")
                 else:
