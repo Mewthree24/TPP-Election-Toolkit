@@ -868,12 +868,13 @@ if st.session_state["election_data"]:
 
         # === State Legislature National View Spreadsheet Generator ===
         elif selected_election_type in ["State House", "State Senate"]:
+            from collections import defaultdict
             data_key = "electNightStH" if selected_election_type == "State House" else "electNightStS"
             wb = Workbook()
             ws = wb.active
             ws.title = f"{selected_election_type} National View"
 
-            entries = st.session_state["election_data"].get(data_key, {}).get("elections", [])
+            entries = election_data.get("elections", [])
             party_labels = {"D": "Democratic", "R": "Republican", "I": "Independent"}
             party_order = ["D", "R", "I"]
             seats_won = {party: 0 for party in party_order}
