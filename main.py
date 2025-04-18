@@ -662,9 +662,9 @@ if st.session_state["election_data"]:
 
                     # === Header Rows ===
                     ws.cell(row=2, column=1, value="State")
-                        ws.cell(row=2, column=2, value="District")
-                        col = 3
-                        for party in party_order:
+                    ws.cell(row=2, column=2, value="District")
+                    col = 3
+                    for party in party_order:
                             ws.cell(row=1, column=col, value=party_labels[party])
                             ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 2)
                             ws.cell(row=2, column=col, value="Candidate")
@@ -673,13 +673,13 @@ if st.session_state["election_data"]:
                             col += 3
 
                         ws.cell(row=1, column=col, value="Margins & Rating")
-                        ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
-                        ws.cell(row=2, column=col, value="Margin #")
-                        ws.cell(row=2, column=col + 1, value="Margin %")
-                        ws.cell(row=2, column=col + 2, value="Total Vote")
-                        ws.cell(row=2, column=col + 3, value="Rating")
+                    ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
+                    ws.cell(row=2, column=col, value="Margin #")
+                    ws.cell(row=2, column=col + 1, value="Margin %")
+                    ws.cell(row=2, column=col + 2, value="Total Vote")
+                    ws.cell(row=2, column=col + 3, value="Rating")
 
-                        for r in range(1, 3):
+                    for r in range(1, 3):
                             for c in range(1, col + 4):
                                 cell = ws.cell(row=r, column=c)
                                 cell.font = Font(bold=True)
