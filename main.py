@@ -294,11 +294,11 @@ if st.session_state["election_data"]:
 
                     # Extract candidate names and parties
                     if entries_to_convert:
-                            first_entry = entries_to_convert[0]
-                            for cand in first_entry.get("cands", []):
-                                party = cand["party"]
-                                name = cand["name"]
-                                party_to_candidate[party] = name
+                        first_entry = entries_to_convert[0]
+                        for cand in first_entry.get("cands", []):
+                            party = cand["party"]
+                            name = cand["name"]
+                            party_to_candidate[party] = name
 
                         candidate_parties = list(party_to_candidate.keys())
 
