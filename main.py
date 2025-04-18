@@ -650,7 +650,7 @@ if st.session_state["election_data"]:
                         key=f"{selected_election_type.lower()}_national_view"
                     )
                     # === U.S. House National View Spreadsheet Generator ===
-                if selected_election_type == "U.S. House" and selected_state == "National View":
+                elif selected_election_type == "U.S. House" and selected_state == "National View":
                     from collections import defaultdict
                     wb = Workbook()
                     ws = wb.active
@@ -665,14 +665,14 @@ if st.session_state["election_data"]:
                     ws.cell(row=2, column=2, value="District")
                     col = 3
                     for party in party_order:
-                            ws.cell(row=1, column=col, value=party_labels[party])
+                        ws.cell(row=1, column=col, value=party_labels[party])
                             ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 2)
-                            ws.cell(row=2, column=col, value="Candidate")
-                            ws.cell(row=2, column=col + 1, value="#")
-                            ws.cell(row=2, column=col + 2, value="%")
-                            col += 3
+                        ws.cell(row=2, column=col, value="Candidate")
+                        ws.cell(row=2, column=col + 1, value="#")
+                        ws.cell(row=2, column=col + 2, value="%")
+                        col += 3
 
-                        ws.cell(row=1, column=col, value="Margins & Rating")
+                    ws.cell(row=1, column=col, value="Margins & Rating")
                     ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 3)
                     ws.cell(row=2, column=col, value="Margin #")
                     ws.cell(row=2, column=col + 1, value="Margin %")
@@ -680,14 +680,14 @@ if st.session_state["election_data"]:
                     ws.cell(row=2, column=col + 3, value="Rating")
 
                     for r in range(1, 3):
-                            for c in range(1, col + 4):
-                                cell = ws.cell(row=r, column=c)
-                                cell.font = Font(bold=True)
-                                cell.alignment = Alignment(horizontal="center")
+                        for c in range(1, col + 4):
+                            cell = ws.cell(row=r, column=c)
+                            cell.font = Font(bold=True)
+                            cell.alignment = Alignment(horizontal="center")
 
-                        row_idx = 3
-                        totals = {party: 0 for party in party_order}
-                        grand_total = 0
+                    row_idx = 3
+                    totals = {party: 0 for party in party_order}
+                    grand_total = 0
 
                         for entry in entries:
                             state = entry.get("state", "??")
