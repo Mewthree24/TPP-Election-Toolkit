@@ -151,6 +151,11 @@ if st.session_state["election_data"]:
                             party_votes[party] = candidates[0]["votes"]
                             # Move lowest-vote candidate to Independent
                             lowest = candidates[-1]
+                            # Safely initialize Independent party
+                            if "I" not in party_votes:
+                                party_votes["I"] = 0
+                            if "I" not in party_names:
+                                party_names["I"] = ""
                             party_names["I"] = lowest["name"]
                             party_votes["I"] += lowest["votes"]
 
@@ -603,7 +608,7 @@ if st.session_state["election_data"]:
                         ws.cell(row=row_idx, column=col, value=f"{margin:,}")
                         ws.cell(row=row_idx, column=col + 1, value=f"{margin_pct:.2f}%")
                         ws.cell(row=row_idx, column=col + 2, value=f"{int(round(grand_total)):,}")
-                        ws.cell(row=row_idx, column=col + 3, value=rating_label)
+                        ws.cell(row=row_idx, column=col +3, value=rating_label)
 
                         for c in range(1, col + 4):
                             ws.cell(row=row_idx, column=c).font = Font(bold=True)
@@ -734,6 +739,11 @@ if st.session_state["election_data"]:
                                     party_votes[party] = candidates[0]["votes"]
                                     # Move lowest-vote candidate to Independent
                                     lowest = candidates[-1]
+                                    # Safely initialize Independent party
+                                    if "I" not in party_votes:
+                                        party_votes["I"] = 0
+                                    if "I" not in party_names:
+                                        party_names["I"] = ""
                                     party_names["I"] = lowest["name"]
                                     party_votes["I"] += lowest["votes"]
 
@@ -828,7 +838,7 @@ if st.session_state["election_data"]:
 
                             header_row.append(label)
 
-                        data_rows = excel_rows[2:]
+                    data_rows = excel_rows[2:]
 
                     if header_row and data_rows:
                         df_display = pd.DataFrame(data_rows, columns=header_row)
