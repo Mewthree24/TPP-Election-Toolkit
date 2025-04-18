@@ -786,12 +786,15 @@ if st.session_state["election_data"]:
                     sorted_totals = sorted(totals.items(), key=lambda x: x[1], reverse=True)
                     margin_total = sorted_totals[0][1] - (sorted_totals[1][1] if len(sorted_totals) > 1 else 0)
                     margin_pct_total = round(margin_total / grand_total * 100, 2) if grand_total else 0
+                    winner_party = sorted_totals[0][0]
+                    rating = "Tilt" if margin_pct_total < 1 else "Lean" if margin_pct_total < 5 else "Likely" if margin_pct_total < 10 else "Safe"
+                    rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
 
                     # Fill in totals row for margins
                     ws.cell(row=row_idx, column=col_idx, value=f"{margin_total:,}")
                     ws.cell(row=row_idx, column=col_idx + 1, value=f"{margin_pct_total:.2f}%")
                     ws.cell(row=row_idx, column=col_idx + 2, value=f"{int(round(grand_total)):,}")
-                    ws.cell(row=row_idx, column=col_idx + 3, value="")
+                    ws.cell(row=row_idx, column=col_idx + 3, value=rating_label)
 
                     for c in range(1, col_idx + 4):
                         ws.cell(row=row_idx, column=c).font = Font(bold=True)
