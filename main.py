@@ -6,6 +6,7 @@ from openpyxl.styles import Font, Alignment
 from io import BytesIO
 from collections import defaultdict
 from bs4 import BeautifulSoup
+import os
 
 # Initialize session
 if "election_data" not in st.session_state:
@@ -613,11 +614,15 @@ if st.session_state["election_data"]:
                             ws.cell(row=row_idx, column=col + 2, value=electoral_totals[p])  # Electoral votes total
                             col += 3
 
-                        ws.cell(row=row_idx, column=col, value=f"{margin:,}")
+                        # Calculate margins first
+                        margin_total = sorted_totals[0][1] - (sorted_totals[1][1] if len(sorted_totals) > 1 else 0)
                         margin_pct_total = round(margin_total / grand_total * 100, 2) if grand_total else 0
+
+                        # Then use the calculated values
+                        ws.cell(row=row_idx, column=col, value=f"{margin_total:,}")
                         ws.cell(row=row_idx, column=col + 1, value=f"{margin_pct_total:.2f}%")
                         ws.cell(row=row_idx, column=col + 2, value=f"{int(round(grand_total)):,}")
-                        ws.cell(row=row_idx, column=col +3, value=rating_label)
+                        ws.cell(row=row_idx, column=col + 3, value=rating_label)
 
                         for c in range(1, col + 4):
                             ws.cell(row=row_idx, column=c).font = Font(bold=True)
