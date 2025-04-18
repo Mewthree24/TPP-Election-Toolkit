@@ -877,7 +877,8 @@ if st.session_state["election_data"]:
             seats_won = defaultdict(int)
 
             # === Header Rows ===
-            ws.cell(row=2, column=1, value="District")
+            ws.cell(row=1, column=1, value="District")
+            ws.merge_cells(start_row=1, start_column=1, end_row=2, end_column=1)
             col = 2
             for party in party_order:
                 ws.cell(row=1, column=col, value=party_labels[party])
