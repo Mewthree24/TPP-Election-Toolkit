@@ -912,13 +912,17 @@ if st.session_state["election_data"]:
 
                 # Group candidates by party and find winner
                 party_groups = defaultdict(list)
+                # Find winner based on vote count
+                candidates = sorted(entry.get("cands", []), key=lambda x: x["votes"], reverse=True)
+                if candidates:
+                    winner = candidates[0]["name"]
+                    winner_party = candidates[0]["party"]
+                    if winner_party in seats_won:
+                        seats_won[winner_party] += 1
+
+                # Group candidates by party
                 for c in entry.get("cands", []):
                     party_groups[c["party"]].append(c)
-                    # Update seats won if this candidate is the winner
-                    if c.get("pw", False):
-                        winner = c["name"]
-                        winner_party = c["party"]
-                        seats_won[winner_party] += 1
 
                 # Prepare vote summary by party
                 party_votes = {}
