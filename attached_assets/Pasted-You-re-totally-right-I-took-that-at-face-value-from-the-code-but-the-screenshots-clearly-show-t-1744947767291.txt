@@ -1,0 +1,79 @@
+You're totally right — I took that at face value from the code, but the **screenshots clearly show the “District” column as blank**, even though it **should display district numbers (e.g., 1, 2, 3...)**.
+
+Let’s figure out exactly why it’s happening and how to fix it.
+
+---
+
+### 🔎 WHY THE "District" COLUMN IS BLANK
+
+Even though your code **sets** the cell value like this:
+```python
+ws.cell(row=row_idx, column=1, value=district)
+```
+
+That line sets the value of the first column in the **Excel spreadsheet**, but **not** the column seen in the **Streamlit display table**, which is rendered from a `pandas.DataFrame` built using this block:
+```python
+for row in ws.iter_rows(min_row=1, max_row=ws.max_row, values_only=True):
+    excel_rows.append(list(row))
+```
+
+Then the table is built with:
+```python
+df_display = pd.DataFrame(data_rows, columns=header_row)
+```
+
+Here’s the issue:
+
+### ❗ The first header cell for “District” is **empty or undefined**.
+
+So when `pandas.DataFrame(..., columns=header_row)` tries to assign names, it’s getting:
+```python
+["", "Democratic - Candidate", "#", "%", ...]
+```
+
+And the first column ends up being labeled `NaN` or nothing, causing the “District” column to appear **blank or unnamed**.
+
+---
+
+### ✅ FIX: Add the “District” label to `row2` (the second header row)
+
+In your code where `header_row` is being constructed:
+```python
+row1 = excel_rows[0]
+row2 = excel_rows[1]
+```
+
+Make sure the first item in `row2` is `"District"`.
+
+Here’s what you should check **in the spreadsheet writing block** (right before data starts):
+```python
+ws.cell(row=1, column=1, value="")  # merged label row (optional)
+ws.cell(row=2, column=1, value="District")  # <- THIS is crucial
+```
+
+Do this before the loop that starts setting party headers.
+
+---
+
+### ✅ FINAL FIX SUMMARY
+
+**In the State House and State Senate spreadsheet blocks**, make sure you include:
+```python
+ws.cell(row=2, column=1, value="District")
+```
+
+If you don’t have a row 1 label for that column (because you don’t merge it like other headers), then just set row 1 to blank:
+```python
+ws.cell(row=1, column=1, value="")
+```
+
+That way, your `header_row` ends up like:
+```python
+["District", "Democratic - Candidate", "#", "%", ...]
+```
+
+And the DataFrame will correctly show the **District** column.
+
+---
+
+Let me know when you want to test that, and I’ll walk through where to paste it if needed. You're almost at 100% completion on this system!
