@@ -1127,11 +1127,64 @@ if st.session_state["election_data"]:
             if not svg_path or not os.path.exists(svg_path):
                 st.error(f"SVG map for this selection not found: {svg_path}")
             else:
+                state_name_to_id = {
+                    "Alabama": "al", "Alaska": "ak", "Arizona": "az", "Arkansas": "ar", "California": "ca",
+                    "Colorado": "co", "Connecticut": "ct", "Delaware": "de", "Florida": "fl", "Georgia": "ga",
+                    "Hawaii": "hi", "Idaho": "id", "Illinois": "il", "Indiana": "in", "Iowa": "ia",
+                    "Kansas": "ks", "Kentucky": "ky", "Louisiana": "la", "Maine": "me", "Maryland": "md",
+                    "Massachusetts": "ma", "Michigan": "mi", "Minnesota": "mn", "Mississippi": "ms", "Missouri": "mo",
+                    "Montana": "mt", "Nebraska": "ne", "Nevada": "nv", "New Hampshire": "nh", "New Jersey": "nj",
+                    "New Mexico": "nm", "New York": "ny", "North Carolina": "nc", "North Dakota": "nd",
+                    "Ohio": "oh", "Oklahoma": "ok", "Oregon": "or", "Pennsylvania": "pa", "Rhode Island": "ri",
+                    "South Carolina": "sc", "South Dakota": "sd", "Tennessee": "tn", "Texas": "tx", "Utah": "ut",
+                    "Vermont": "vt", "Virginia": "va", "Washington": "wa", "West Virginia": "wv",
+                    "Wisconsin": "wi", "Wyoming": "wy", "District of Columbia": "dc"
+                }
+
                 with open(svg_path, "r", encoding="utf-8") as f:
                     soup = BeautifulSoup(f.read(), "html.parser")
 
                 # Extract data from df
                 if 'df_display' in locals():
+                    region_colors = {}
+                    for _, row in df_display.iterrows():
+                        state_name = row["State"]
+                        if selected_election_type in ["President", "Senate", "Governor"]:
+                            region_id = state_name_to_id.get(state_name, state_name.lower())
+                        else:
+                            region_id = str(row["County"]).replace(" ", "_").lower() if "County" in row else None
+
+                        if region_id:
+                            rating = str(row.get("Margins & Rating - Rating", ""))
+                            party = rating.split(" ")[-1] if " " in rating else None
+                            margin_str = str(row.get("Margins & Rating - Margin %", "0%")).replace("%", "")
+                            try:
+                                margin = float(margin_str)
+                            except:
+                                margin = 0
+
+                            if not party or party not in colors:
+                                continue
+
+                            if not use_margin_shading:
+                                shade = "Safe"
+                            elif margin < tilt_max:
+                                shade = "Tilt"
+                            elif margin < lean_max:
+                                shade = "Lean"
+                            elif margin < likely_max:
+                                shade = "Likely"
+                            else:
+                                shade = "Safe"
+
+                            fill = colors[party][shade]
+                            region_colors[region_id] = fill
+
+                    # Apply colors to SVG
+                    for path in soup.find_all(["path", "g"]):
+                        region_id = path.get("id", "").lower()
+                        if region_id in region_colors:
+                            path["style"] = f"fill:{region_colors[region_id]};stroke:#000000;stroke-width:1"
                     df_map = df_display.copy()
 
                     region_colors = {}
