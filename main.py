@@ -143,14 +143,14 @@ if st.session_state["election_data"]:
                             ws.cell(row=2, column=col + 1, value="Margin %")
                             ws.cell(row=2, column=col + 2, value="Total Vote")
                             ws.cell(row=2, column=col + 3, value="Rating")
-                            
+
                             # Format headers
                             for r in range(1, 3):
                                 for c in range(1, col + 4):
                                     cell = ws.cell(row=r, column=c)
                                     cell.font = Font(bold=True)
                                     cell.alignment = Alignment(horizontal="center", vertical="center")
-                            
+
                             # === Data rows ===
                             row_idx = 3
                             ordered_candidates = [(party, name) for party in party_order for name in party_to_candidates[party]]
@@ -187,7 +187,7 @@ if st.session_state["election_data"]:
                                 ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(total_vote))))
                                 ws.cell(row=row_idx, column=col + 3, value=rating_label)
                                 row_idx += 1
-                            
+
                             # === Totals row ===
                             ws.cell(row=row_idx, column=1, value="TOTALS")
                             grand_total = sum(candidate_totals.values())
@@ -214,13 +214,13 @@ if st.session_state["election_data"]:
                             ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
                             ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(grand_total))))
                             ws.cell(row=row_idx, column=col + 3, value=rating_label)
-                        
+
                         from openpyxl.styles import Font
 
                         # Bold Totals row
                         for col_idx in range(1, col + 4):
                             ws.cell(row=row_idx, column=col_idx).font = Font(bold=True)
-                        
+
                         # Save file to memory
                         file_stream = BytesIO()
                         wb.save(file_stream)
@@ -266,7 +266,7 @@ if st.session_state["election_data"]:
                         df_display = pd.DataFrame(data_rows, columns=header_row)
                         st.subheader(f"🧾 {selected_state} County-Level Results")
                         st.dataframe(df_display, use_container_width=True)
-                        
+
                         # Create download button (one time only)
                         st.download_button(
                             label="📥 Download County-Level Spreadsheet",
@@ -627,7 +627,7 @@ elif selected_election_type in ["Senate", "Governor"] and selected_state == "Nat
 
             header_row.append(label)
 
-    df_display = pd.DataFrame(excel_rows[2:], columns=header_row)
+    df_display = pd.DataFrame(excel_rows[2:], columns=headerrow)
     st.dataframe(df_display, use_container_width=True)
 
     st.download_button(
