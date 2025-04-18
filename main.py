@@ -711,27 +711,27 @@ if st.session_state["election_data"]:
                 total_vote = sum(c["votes"] for c in entry.get("cands", []))
 
                     for party in party_order:
-                        candidates = sorted(party_groups.get(party, []), key=lambda x: x["votes"], reverse=True)
-                        if not candidates:
-                            party_names[party] = ""
-                            party_votes[party] = 0
-                            continue
+                    candidates = sorted(party_groups.get(party, []), key=lambda x: x["votes"], reverse=True)
+                    if not candidates:
+                        party_names[party] = ""
+                        party_votes[party] = 0
+                        continue
 
-                        if len(candidates) == 1:
+                    if len(candidates) == 1:
+                        party_names[party] = candidates[0]["name"]
+                        party_votes[party] = candidates[0]["votes"]
+                    else:
+                        if candidates[0]["name"] == winner:
+                            combined = sum(c["votes"] for c in candidates)
+                            party_names[party] = candidates[0]["name"]
+                            party_votes[party] = combined
+                        else:
                             party_names[party] = candidates[0]["name"]
                             party_votes[party] = candidates[0]["votes"]
-                        else:
-                            if candidates[0]["name"] == winner:
-                                combined = sum(c["votes"] for c in candidates)
-                                party_names[party] = candidates[0]["name"]
-                                party_votes[party] = combined
-                            else:
-                                party_names[party] = candidates[0]["name"]
-                                party_votes[party] = candidates[0]["votes"]
-                                # Move lowest-vote candidate to Independent
-                                lowest = candidates[-1]
-                                party_names["I"] = lowest["name"]
-                                party_votes["I"] += lowest["votes"]
+                            # Move lowest-vote candidate to Independent
+                            lowest = candidates[-1]
+                            party_names["I"] = lowest["name"]
+                            party_votes["I"] += lowest["votes"]
 
                     col_idx = 3
                     for party in party_order:
