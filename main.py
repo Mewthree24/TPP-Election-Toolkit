@@ -1072,15 +1072,21 @@ if st.session_state["election_data"]:
             )
         else:
             st.warning("This election type is not yet supported.")
+    elif (
+        "election_data" in st.session_state 
+        and selected_election_type in ["President", "Senate", "Governor"]
+        and selected_state != "National View"
+    ):
+        st.sidebar.warning("Map generation is only available for National View of Presidential, Senate, and Governor elections.")
     else:
         st.warning("No recognized election data found in this file.")
 # === MAP GENERATION UI & LOGIC (SVG-based) ===
     st.sidebar.header("🗺️ Map Generator Settings")
 
     if (
-    "election_data" in st.session_state
+    "election_data" in st.session_state 
     and selected_election_type in ["President", "Senate", "Governor"]
-    and selected_state
+    and selected_state == "National View"
 ):
         with st.sidebar.expander("Map Settings"):
             st.markdown("### Margin Thresholds")
