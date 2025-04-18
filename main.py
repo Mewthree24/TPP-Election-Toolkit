@@ -1142,7 +1142,7 @@ if st.session_state["election_data"]:
                 }
 
                 with open(svg_path, "r", encoding="utf-8") as f:
-                    soup = BeautifulSoup(f.read(), features="xml")
+                    soup = BeautifulSoup(f.read(), features="lxml-xml")
 
                 if 'df_display' in locals():
                     region_colors = {}
