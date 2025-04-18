@@ -1076,6 +1076,17 @@ if st.session_state["election_data"]:
         st.warning("No recognized election data found in this file.")
 # === MAP GENERATION UI & LOGIC ===
     if "election_data" in st.session_state and selected_election_type in ["President", "Senate", "Governor"]:
+        rating_colors = {
+            "Safe Democratic": "#1C408C",
+            "Likely Democratic": "#577CCC",
+            "Lean Democratic": "#8AAFFF",
+            "Tilt Democratic": "#949BB3",
+            "Safe Republican": "#BF1D29",
+            "Likely Republican": "#FF5865",
+            "Lean Republican": "#FF8B98",
+            "Tilt Republican": "#CF8980"
+        }
+
         df = None
         if selected_state == "National View":
             if "df_display" in locals():
@@ -1084,10 +1095,76 @@ if st.session_state["election_data"]:
             df = df_display
 
         if df is not None:
-            svg_output, error_message = generate_colored_svg(df, selected_election_type, selected_state)
-            if error_message:
-                st.error(error_message)
-            elif svg_output:
-                display_svg(svg_output, selected_state, selected_election_type)
+            # === Generate region-color mapping ===
+            region_colors = {}
+            if selected_state == "National View":
+                # Find the state column name
+                state_col = next((col for col in df.columns if 'State' in col), None)
+                if state_col:
+                    for _, row in df.iterrows():
+                        region_id = row[state_col]
+                        rating_col = next((col for col in df.columns if 'Rating' in col), None)
+                        rating = row[rating_col] if rating_col else ""
+                        if region_id:
+                            region_colors[str(region_id).lower()] = rating_colors.get(rating, "#cccccc")
+            else:
+                county_col = next((col for col in df.columns if 'County' in col), None)
+                if county_col:
+                    for _, row in df.iterrows():
+                        region_id = str(row[county_col]).lower().replace(" ", "_")
+                        rating_col = next((col for col in df.columns if 'Rating' in col), None)
+                        rating = row[rating_col] if rating_col else ""
+                        if region_id:
+                            region_colors[region_id] = rating_colors.get(rating, "#cccccc")
+
+            # === Load and color SVG ===
+            if selected_state == "National View":
+                if selected_election_type == "President":
+                    svg_file = "presidential.svg"
+                elif selected_election_type in ["Senate", "Governor"]:
+                    svg_file = "states.svg"
+            else:
+                state_code = next((code for code, name in state_code_to_name.items() if name == selected_state), None)
+                if not state_code:
+                    st.error(f"Unknown state: {selected_state}")
+                else:
+                    svg_file = f"{state_code.lower()}.svg"
+
+            svg_path = os.path.join("svg", svg_file)
+            if not os.path.exists(svg_path):
+                st.error(f"SVG file not found: {svg_file}")
+            else:
+                with open(svg_path, "r", encoding="utf-8") as f:
+                    soup = BeautifulSoup(f.read(), "html.parser")
+
+                for path in soup.find_all("path"):
+                    region_id = path.get("id", "").lower()
+                    if region_id in region_colors:
+                        path["style"] = f"fill:{region_colors[region_id]};stroke:#000000;stroke-width:0.5"
+
+                # Set background color
+                soup.svg["style"] = "background-color:black"
+
+                # Display map
+                st.subheader("\U0001F5FA\ufe0f Live Map Preview")
+                st.components.v1.html(
+                    f"""
+                    <div style='width: 100%; height: 100%; display: flex; justify-content: center;'>
+                        <div style='max-width: 100%; height: auto;'>
+                            {str(soup)}
+                        </div>
+                    </div>
+                    """,
+                    height=800,
+                    scrolling=False
+                )
+
+                # Download button
+                st.download_button(
+                    label="\U0001F4C5 Download Map",
+                    data=str(soup),
+                    file_name=f"{selected_state}_{selected_election_type}_Map.svg",
+                    mime="image/svg+xml"
+                )
     else:
         st.info("Please upload a JSON savefile.")
