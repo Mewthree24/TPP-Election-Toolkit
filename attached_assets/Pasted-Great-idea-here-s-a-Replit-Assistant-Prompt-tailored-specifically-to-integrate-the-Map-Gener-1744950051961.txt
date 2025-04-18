@@ -1,0 +1,88 @@
+Great idea — here's a **Replit Assistant Prompt** tailored specifically to integrate the **Map Generation** system into your existing TPP Election Toolkit (V6) project, based on everything we've set up so far:
+
+---
+
+## ✅ REPLIT ASSISTANT PROMPT FOR MAP GENERATION INTEGRATION
+
+**Project Context:**
+This is a Streamlit application named **"TPP Election Toolkit"** that:
+- Parses JSON savefiles from a political simulator.
+- Extracts data into multiple views (President, Senate, Governor, House, State Legislature).
+- Generates spreadsheets and previews for each race.
+- Stores SVG maps in `svg/` directory.
+
+**Map Folder Contents:**
+- `svg/presidential.svg`: Used for **Presidential National View**
+- `svg/states.svg`: Used for **Senate** and **Governor National View**
+- `svg/{STATE}.svg`: Used for **county-level** maps (e.g., `CA.svg`, `WI.svg`)
+
+---
+
+### 🔧 TASK
+
+Add a **Map Generator UI and backend** to this project with the following:
+
+---
+
+### 🧩 1. USER CONTROLS (Place in sidebar)
+
+- Election Type + State selectors (use existing `selected_election_type` and `selected_state`)
+- Color customization per party and margin range:
+  - Safe / Likely / Lean / Tilt for each: Democratic, Republican, Independent
+- Margin threshold sliders (float, 2 decimal precision):
+  - `Tilt Max %`, `Lean Max %`, `Likely Max %`
+- Checkbox: `"Use Margin-Based Shading"`
+- Button: `"Generate Map"`
+
+---
+
+### 🗺️ 2. SVG MAP LOGIC (Triggered on button click)
+
+- Determine correct SVG:
+```python
+if selected_election_type == "President":
+    svg_path = "svg/presidential.svg"
+elif selected_election_type in ["Senate", "Governor"]:
+    svg_path = "svg/states.svg"
+else:
+    svg_path = f"svg/{selected_state_code}.svg"
+```
+
+- Use the in-app dataframe (`df`) or generated spreadsheet to color:
+  - For state maps: color by state abbreviation
+  - For county maps: match by county name (case-normalized, space replaced with `_`)
+- Read and modify SVG using **BeautifulSoup**
+- Assign fill color based on:
+  - Margin % and rating range
+  - Party of winner
+  - Color user selected for that party's tilt/lean/likely/safe
+
+---
+
+### 🎨 3. DISPLAY
+
+- Render updated SVG as a PNG in the app using `cairosvg` or `svglib`
+- Show with `st.image()` and offer download with `st.download_button`
+
+---
+
+### 📤 OUTPUT FILENAME
+
+Name the exported file based on election type and state:
+```python
+f"{selected_state_code}_{selected_election_type}_Map.svg"
+```
+
+---
+
+### ✅ REQUIREMENTS
+
+- Must work **without reading CSVs** (use current election data in memory).
+- Compatible with existing `st.session_state["election_data"]`.
+- Output must match the structure and logic already used in spreadsheet generation.
+- Must avoid conflicting with existing display or spreadsheet keys.
+- Add comments for modularization (allow future extension for live map updates).
+
+---
+
+Ready to send this to the Replit Assistant? This will guide it exactly on what to build. Want me to go ahead and convert this into the actual code afterward?
