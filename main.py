@@ -650,18 +650,18 @@ if st.session_state["election_data"]:
                         key=f"{selected_election_type.lower()}_national_view"
                     )
                     # === U.S. House National View Spreadsheet Generator ===
-                elif selected_election_type == "U.S. House":
+                if selected_election_type == "U.S. House" and selected_state == "National View":
                     from collections import defaultdict
                     wb = Workbook()
                     ws = wb.active
                     ws.title = "U.S. House National View"
 
-                        entries = election_data.get("elections", [])
+                    entries = election_data.get("elections", [])
                     party_labels = {"D": "Democratic", "R": "Republican", "I": "Independent"}
                     party_order = ["D", "R", "I"]
 
-                        # === Header Rows ===
-                        ws.cell(row=2, column=1, value="State")
+                    # === Header Rows ===
+                    ws.cell(row=2, column=1, value="State")
                         ws.cell(row=2, column=2, value="District")
                         col = 3
                         for party in party_order:
@@ -821,7 +821,8 @@ if st.session_state["election_data"]:
                             data_rows = excel_rows[2:]
 
                         if header_row and data_rows:
-                            df_display = pd.DataFrame(data_rows, columns=header_row)
+                            df_display = pd.DataFrame(data_rows)
+                            df_display.columns = header_row
                             st.dataframe(df_display, use_container_width=True)
 
                         st.download_button(
