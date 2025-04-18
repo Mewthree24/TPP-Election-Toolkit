@@ -616,7 +616,7 @@ if st.session_state["election_data"]:
                             col += 3
 
                         # Calculate margins first
-                        margin_total = sorted_totals[0][1] - (sorted_totals[1][1] if len(sorted_totals) > 1 else 0)
+                        margin_total = sorted_totals[0][1] - (sorted_totals[1][1] if len(sorted_totals) >1 > 1 else 0)
                         margin_pct_total = round(margin_total / grand_total * 100, 2) if grand_total else 0
 
                         # Then use the calculated values
@@ -1142,7 +1142,7 @@ if st.session_state["election_data"]:
                 }
 
                 with open(svg_path, "r", encoding="utf-8") as f:
-                    soup = BeautifulSoup(f.read(), features="lxml-xml")
+                    soup = BeautifulSoup(f.read(), "html.parser")
 
                 if 'df_display' in locals():
                     region_colors = {}
