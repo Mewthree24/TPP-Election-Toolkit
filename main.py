@@ -289,8 +289,8 @@ if st.session_state["election_data"]:
                     ws.title = "Presidential National View"
 
                         candidates = []
-                        party_labels = {"D": "Democratic", "R": "Republican", "I": "Independent"}
-                        party_to_candidate = {}
+                    party_labels = {"D": "Democratic", "R": "Republican", "I": "Independent"}
+                    party_to_candidate = {}
 
                         # Extract candidate names and parties
                         if entries_to_convert:
