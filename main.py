@@ -874,7 +874,7 @@ if st.session_state["election_data"]:
             entries = sorted(election_data.get("elections", []), key=lambda x: int(x.get("district", 0)))
             party_labels = {"D": "Democratic", "R": "Republican", "I": "Independent"}
             party_order = ["D", "R", "I"]
-            seats_won = defaultdict(int)
+            seats_won = {"D": 0, "R": 0, "I": 0}  # Initialize seats counter
 
             # === Header Rows ===
             ws.cell(row=1, column=1, value="District")
@@ -990,12 +990,9 @@ if st.session_state["election_data"]:
             ws.cell(row=row_idx, column=1, value="TOTALS")
             col_idx = 2
             for party in party_order:
-                seats = sum(1 for entry in entries 
-                          for cand in entry.get("cands", [])
-                          if cand.get("pw", False) and cand["party"] == party)
                 total = totals[party]
                 pct = round(total / grand_total * 100, 2) if grand_total else 0
-                ws.cell(row=row_idx, column=col_idx, value=f"{seats} seats")
+                ws.cell(row=row_idx, column=col_idx, value=f"{seats_won[party]} seats")
                 ws.cell(row=row_idx, column=col_idx + 1, value=f"{total:,}")
                 ws.cell(row=row_idx, column=col_idx + 2, value=f"{pct:.2f}%")
                 col_idx += 3
