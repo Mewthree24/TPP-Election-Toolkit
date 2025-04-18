@@ -628,9 +628,9 @@ if st.session_state["election_data"]:
                     header_row.append(label)
 
             df_display = pd.DataFrame(excel_rows[2:], columns=header_row)
-                    st.dataframe(df_display, use_container_width=True)
+            st.dataframe(df_display, use_container_width=True)
 
-                    st.download_button(
+            st.download_button(
                         label=f"📥 Download {selected_election_type} Spreadsheet",
                         data=file_stream,
                         file_name=f"{selected_election_type}_National_View.xlsx",
