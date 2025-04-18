@@ -921,8 +921,9 @@ if st.session_state["election_data"]:
                 for c in entry.get("cands", []):
                     if c.get("pw", False):
                         winner = c["name"]
-                        winner_party = c["party"] 
-                        seats_won[winner_party] += 1
+                        winner_party = c["party"]
+                        if winner_party in seats_won:
+                            seats_won[winner_party] += 1
                         break
 
                 # Prepare vote summary by party
@@ -992,7 +993,8 @@ if st.session_state["election_data"]:
             for party in party_order:
                 total = totals[party]
                 pct = round(total / grand_total * 100, 2) if grand_total else 0
-                ws.cell(row=row_idx, column=col_idx, value=f"{seats_won[party]} seats")
+                seats = seats_won[party]
+                ws.cell(row=row_idx, column=col_idx, value=f"{seats} seats")
                 ws.cell(row=row_idx, column=col_idx + 1, value=f"{total:,}")
                 ws.cell(row=row_idx, column=col_idx + 2, value=f"{pct:.2f}%")
                 col_idx += 3
