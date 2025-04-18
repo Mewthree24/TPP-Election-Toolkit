@@ -1068,4 +1068,3 @@ if st.session_state["election_data"]:
         st.warning("No recognized election data found in this file.")
 else:
     st.info("Please upload a JSON savefile.")
-
