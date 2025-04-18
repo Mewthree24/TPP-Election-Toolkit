@@ -1142,10 +1142,22 @@ if st.session_state["election_data"]:
                 }
 
                 with open(svg_path, "r", encoding="utf-8") as f:
-                    soup = BeautifulSoup(f.read(), "html.parser")
+                    soup = BeautifulSoup(f.read(), "xml")
 
-                if 'df_display' in locals():
-                    region_colors = {}
+                # === Generate region-color mapping ===
+                region_colors = {}
+                if selected_state == "National View":
+                    for _, row in df_display.iterrows():
+                        region_id = row["State"]
+                        rating = row.get("Rating", "")
+                        region_colors[region_id.lower()] = rating_colors.get(rating, "#cccccc")
+                else:
+                    for _, row in df_display.iterrows():
+                        county_name = row.get("County")
+                        rating = row.get("Rating", "")
+                        if county_name and rating:
+                            county_id = county_name.strip().lower().replace(" county", "").replace(" ", "-").replace("'", "")
+                            region_colors[county_id] = rating_colors.get(rating, "#cccccc")
                     for _, row in df_display.iterrows():
                         state_name = row.get("State", "").strip()
                         if selected_election_type in ["President", "Senate", "Governor"]:
