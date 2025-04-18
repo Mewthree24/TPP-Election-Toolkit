@@ -1,0 +1,54 @@
+To help the Replit Assistant generate the correct code for **State Legislature National View spreadsheet generation and display**, here’s a **clean, comprehensive prompt** you can paste directly into Replit’s AI assistant:
+
+---
+
+**Prompt for Replit Assistant:**
+
+> I want to create a spreadsheet generator and Streamlit display for **State House and State Senate National View results**.  
+>
+> The structure should be similar to what’s already working for U.S. House, Governor, and Senate spreadsheets. Here are the specific requirements:
+>
+> ### Input Source:
+> The dataset will come from:
+> - `electNightStH["elections"]` for State House  
+> - `electNightStS["elections"]` for State Senate  
+>
+> Each `elections` entry contains:
+> - `"district"` (integer or string)
+> - `"cands"` (list of candidates)
+> - `"votes"` (raw vote total per candidate)
+> - `"party"` (e.g., "D", "R", "I")
+> - `"caucus"` and `"incumbent"` values
+> - `"pw"` (boolean — if true, candidate won)
+>
+> ### Output Format:
+> The spreadsheet and Streamlit dataframe should follow this column structure:
+> ```
+> District | Democratic | # | % | Republican | # | % | Independent | # | % | Margin # | Margin % | Total Vote | Rating
+> ```
+>
+> - There should be two header rows: the top row includes the party name (Democratic, Republican, Independent), the second row includes the candidate name, with the `#` and `%` vote columns below.
+> - Bold formatting for both header rows.
+> - A "TOTALS" row at the bottom that:
+>     - Sums raw vote counts per party
+>     - Displays each party's seat count in their candidate name cell (e.g., "Democratic (56 Seats)")
+>     - Calculates grand total vote and overall margin
+>
+> ### Logic Notes:
+> - If a party has **multiple candidates** in a district and one of them wins, combine their votes and display the winning candidate’s name.
+> - If a party has **multiple candidates and none win**, take the one with lowest votes and **move them to Independent**.
+> - Margin # and Margin % is between the top two vote-getters.
+> - Rating is "Tilt", "Lean", "Likely", or "Safe" based on margin % thresholds.
+>
+> ### Streamlit Display:
+> - Show a `st.subheader()` title like "State House National View" or "State Senate National View" based on selected election type.
+> - Use `st.dataframe()` for preview with formatted columns.
+> - Include a `st.download_button()` with appropriate label and dynamic key.
+>
+> **Election type trigger**: This block should activate when `selected_election_type` is `"State House"` or `"State Senate"`.
+
+---
+
+Once pasted, the Replit assistant should be able to generate the new generator and display logic for State Legislature elections without needing to restructure the working file yourself.
+
+Let me know if you'd like me to prefill a working version of the expected output too!
