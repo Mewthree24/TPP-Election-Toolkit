@@ -284,9 +284,9 @@ if st.session_state["election_data"]:
                 entries_to_convert = election_data.get("elections", [])
 
                 if selected_election_type == "President":
-                        wb = Workbook()
-                        ws = wb.active
-                        ws.title = "Presidential National View"
+                    wb = Workbook()
+                    ws = wb.active
+                    ws.title = "Presidential National View"
 
                         candidates = []
                         party_labels = {"D": "Democratic", "R": "Republican", "I": "Independent"}
