@@ -4,6 +4,7 @@ import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from io import BytesIO
+from collections import defaultdict
 
 # Initialize session
 if "election_data" not in st.session_state:
