@@ -1067,5 +1067,120 @@ if st.session_state["election_data"]:
             st.warning("This election type is not yet supported.")
     else:
         st.warning("No recognized election data found in this file.")
+# === MAP GENERATION UI & LOGIC (SVG-based) ===
+    st.sidebar.header("🗺️ Map Generator Settings")
+
+    if "election_data" in st.session_state and selected_election_type and selected_state:
+        with st.sidebar.expander("Map Settings"):
+            st.markdown("### Margin Thresholds")
+            use_margin_shading = st.checkbox("Use Margin-Based Shading", value=True)
+
+            tilt_max = st.slider("Tilt Max (%)", 0.1, 5.0, 1.0, step=0.1)
+            lean_max = st.slider("Lean Max (%)", 5.1, 10.0, 5.0, step=0.1)
+            likely_max = st.slider("Likely Max (%)", 10.1, 15.0, 10.0, step=0.1)
+
+            st.markdown("### Party Color Customizer")
+            colors = {
+                "D": {
+                    "Safe": st.color_picker("Safe Democratic", "#1C408C"),
+                    "Likely": st.color_picker("Likely Democratic", "#577CCC"),
+                    "Lean": st.color_picker("Lean Democratic", "#8AAFFF"),
+                    "Tilt": st.color_picker("Tilt Democratic", "#B3C4E7"),
+                },
+                "R": {
+                    "Safe": st.color_picker("Safe Republican", "#BF1D29"),
+                    "Likely": st.color_picker("Likely Republican", "#FF5865"),
+                    "Lean": st.color_picker("Lean Republican", "#FF8B98"),
+                    "Tilt": st.color_picker("Tilt Republican", "#CF8980"),
+                },
+                "I": {
+                    "Safe": st.color_picker("Safe Independent", "#888888"),
+                    "Likely": st.color_picker("Likely Independent", "#AAAAAA"),
+                    "Lean": st.color_picker("Lean Independent", "#CCCCCC"),
+                    "Tilt": st.color_picker("Tilt Independent", "#E0E0E0"),
+                }
+            }
+
+        if st.sidebar.button("🗺️ Generate Map"):
+            # Determine which SVG file to use
+            svg_path = None
+            state_code = next((code for code, name in state_code_to_name.items() if name == selected_state), selected_state)
+
+            if selected_election_type == "President":
+                svg_path = "SVG/presidential.svg"
+            elif selected_election_type in ["Senate", "Governor"]:
+                svg_path = "SVG/states.svg"
+            elif selected_election_type in ["U.S. House", "State House", "State Senate"]:
+                svg_path = f"SVG/{state_code.lower()}.svg"
+
+            if not svg_path or not os.path.exists(svg_path):
+                st.error(f"SVG map for this selection not found: {svg_path}")
+            else:
+                with open(svg_path, "r", encoding="utf-8") as f:
+                    soup = BeautifulSoup(f.read(), "xml")
+
+                # Extract data from df
+                if 'df_display' in locals():
+                    df_map = df_display.copy()
+
+                    region_colors = {}
+                    for _, row in df_map.iterrows():
+                        region_id = None
+                        if selected_election_type in ["President", "Senate", "Governor"]:
+                            region_id = row["State"]
+                        elif selected_election_type in ["U.S. House", "State House", "State Senate"]:
+                            region_id = str(row["County"]).replace(" ", "_").lower() if "County" in row else None
+                        else:
+                            continue
+
+                        if region_id:
+                            rating = str(row.get("Margins & Rating - Rating", ""))
+                            party = rating.split(" ")[-1] if " " in rating else None
+                            margin_str = str(row.get("Margins & Rating - Margin %", "0%")).replace("%", "")
+                            try:
+                                margin = float(margin_str)
+                            except:
+                                margin = 0
+
+                            if not party or party not in colors:
+                                continue
+
+                            if not use_margin_shading:
+                                shade = "Safe"
+                            elif margin < tilt_max:
+                                shade = "Tilt"
+                            elif margin < lean_max:
+                                shade = "Lean"
+                            elif margin < likely_max:
+                                shade = "Likely"
+                            else:
+                                shade = "Safe"
+
+                            fill = colors[party][shade]
+                            region_colors[region_id.lower()] = fill
+
+                    # Apply colors to SVG
+                    for path in soup.find_all(["path", "g"]):
+                        region_id = path.get("id", "").lower()
+                        if region_id in region_colors:
+                            path["style"] = f"fill:{region_colors[region_id]};stroke:#000000;stroke-width:1"
+
+                    # Output the final SVG
+                    svg_output = str(soup)
+
+                    st.subheader("🗺️ Generated Election Map")
+                    st.markdown("The map below shows current results with customized shading:")
+
+                    # Render SVG inline
+                    st.components.v1.html(svg_output, height=600, scrolling=True)
+
+                    # Download Button
+                    st.download_button(
+                        label="📥 Download SVG Map",
+                        data=svg_output.encode("utf-8"),
+                        file_name=f"{state_code}_{selected_election_type}_Map.svg",
+                        mime="image/svg+xml",
+                        key=f"{state_code}_{selected_election_type}_map"
+                    )
 else:
     st.info("Please upload a JSON savefile.")
