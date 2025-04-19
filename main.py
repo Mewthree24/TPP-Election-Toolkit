@@ -28,11 +28,11 @@ def render_svg_file(svg_path: str, title: str = None):
             <div style="display: flex; justify-content: center;">
                 <object type="image/svg+xml"
                         data="data:image/svg+xml;base64,{svg_base64}"
-                        style="max-width: 100%; width: 100%; height: auto;">
+                        style="max-width: 100%; width: 100%; height: 720px; display: block;">
                 </object>
             </div>
             """,
-            height=0,
+            height=740,
             scrolling=False
         )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
