@@ -10,6 +10,36 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
+def render_svg_file(svg_path: str, title: str = None):
+    try:
+        with open(svg_path, "r", encoding="utf-8") as f:
+            svg_raw = f.read()
+
+        svg_inner = svg_raw.split("<svg", 1)[-1].split(">", 1)[-1].rsplit("</svg>", 1)[0]
+
+        if title:
+            st.subheader(title)
+
+        components.html(
+            f"""
+            <div style="display: flex; justify-content: center;">
+                <div style="width: 100%; max-width: 1000px;">
+                    <div style="background-color: black; padding: 10px;">
+                        <svg style="width: 100%; height: auto;" preserveAspectRatio="xMidYMid meet">
+                            {svg_inner}
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            """,
+            height=700,
+            scrolling=False
+        )
+        st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
+
+    except Exception as e:
+        st.error(f"⚠️ Failed to render SVG: {e}")
+
 # === Map Generation ===
 svg_folder_path = os.path.join(os.getcwd(), "SVG")
 svg_files = [f for f in os.listdir(svg_folder_path) if f.endswith(".svg")]
@@ -37,34 +67,8 @@ st.title("🗳️ TPP Election Toolkit")
 
 # Add SVG Viewer Test
 st.subheader("🖼️ SVG Viewer Test")
-
-# Example file to render (change this to test other states)
 test_svg_file = os.path.join("SVG", "wi.svg")
-
-# Load the SVG content
-try:
-    with open(test_svg_file, "r", encoding="utf-8") as f:
-        svg_content = f.read()
-
-    # Render SVG in Streamlit
-    components.html(
-        f"""
-        <div style="display: flex; justify-content: center;">
-            <div style="width: 100%; max-width: 1000px;">
-                <div style="background-color: black; padding: 10px;">
-                    <svg style="width: 100%; height: auto;" viewBox="0 0 810 810" preserveAspectRatio="xMidYMid meet">
-                        {svg_content.split("<svg", 1)[-1].split(">", 1)[-1].rsplit("</svg>", 1)[0]}
-                    </svg>
-                </div>
-            </div>
-        </div>
-        """,
-        height=700,
-        scrolling=False
-    )
-    st.success("✅ SVG rendered successfully.")
-except Exception as e:
-    st.error(f"❌ Failed to load or render SVG: {e}")
+render_svg_file(test_svg_file)
 
 # Upload file
 uploaded_file = st.file_uploader("Upload your savefile", type=["json"])
@@ -526,12 +530,20 @@ if st.session_state["election_data"]:
 
                         # Create download button (one time only)
                         st.download_button(
-                            label="📥 Download County-Level Spreadsheet",
+                            label="📥 Download County-Level Spreadsheet", 
                             data=file_stream,
                             file_name = f"{state_code}_{selected_election_type}_County_Results.xlsx",
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                             key=f"county_download_{state_code}"
                         )
+
+                        # Show county-level map
+                        svg_filename = f"{state_code.lower()}.svg"
+                        svg_path = os.path.join("SVG", svg_filename)
+                        if os.path.exists(svg_path):
+                            render_svg_file(svg_path, title="🗺️ County-Level Map")
+                        else:
+                            st.warning(f"❌ No county-level map found for {state_code}")
                     else:
                         st.warning("No county-level data found.")
                 else:
