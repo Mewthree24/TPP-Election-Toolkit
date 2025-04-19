@@ -659,7 +659,7 @@ if st.session_state["election_data"]:
                                 rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
 
                                 ws.cell(row=row_idx, column=col, value="{:,}".format(margin))
-                                ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
+                               ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
                                 ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(total_vote))))
                                 ws.cell(row=row_idx, column=col + 3, value=rating_label)
                                 row_idx += 1
@@ -961,7 +961,7 @@ if st.session_state["election_data"]:
                     # === Presidential National View Map ===
                     pres_path = os.path.join("SVG", "presidential.svg")
                     if os.path.exists(pres_path):
-                        render_svg_file(pres_path, title="🗺️ Presidential National Map")
+                        render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
                     else:
                         st.warning("No national map found for President.")
                 # === Senate/Governor National View Spreadsheet Generator ===
@@ -1109,7 +1109,6 @@ if st.session_state["election_data"]:
                         ws.cell(row=row_idx, column=c).font = Font(bold=True)
 
                     # === Streamlit Display ===
-                    from io import BytesIO
                     st.subheader(f"🧾 {selected_election_type} National View")
                     file_stream = BytesIO()
                     wb.save(file_stream)
@@ -1160,18 +1159,18 @@ if st.session_state["election_data"]:
                         key=f"{selected_election_type.lower().replace(' ', '_')}_national_view"
                     )
 
-                    
+
 
                     # === National View Maps ===
                     if selected_state == "National View":
                         if selected_election_type == "President":
                             pres_path = os.path.join("SVG", "presidential.svg")
                             if os.path.exists(pres_path):
-                                render_svg_file(pres_path, title="🗺️ Presidential National Map", dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
+                                render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
                         elif selected_election_type in ["Senate", "Governor"]:
                             states_path = os.path.join("SVG", "states.svg")
                             if os.path.exists(states_path):
-                                render_svg_file(states_path, title=f"🗺️ {selected_election_type} National Map", dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
+                                render_svg_file(states_path, title=f"🗺️ {selected_election_type} National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
 
 
         # === State Legislature National View Spreadsheet Generator ===
