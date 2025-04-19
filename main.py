@@ -177,11 +177,10 @@ def display_national_map(election_type):
         else:
             st.warning(f"No national map found for {election_type}")
 
-def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_colors=None, rep_colors=None, ind_colors=None, map_key=None):
+def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_colors=None, rep_colors=None, ind_colors=None):
     import streamlit.components.v1 as components
     import base64
     import os
-    import re
 
     try:
         with open(svg_path, "r", encoding="utf-8") as f:
@@ -196,21 +195,6 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             if "presidential" in svg_path or "states" in svg_path:
                 color_map = build_state_color_map(df_display, dem_colors, rep_colors, ind_colors)
                 svg_data = apply_state_colors_to_svg(svg_data, color_map)
-
-                # Add click handlers to state paths with unique ID
-                def add_click_handler(match):
-                    tag = match.group(0)
-                    state_code = match.group(2)
-                    state_name = state_code_to_name.get(state_code.upper(), "")
-                    if state_name:
-                        onclick = f'onclick="localStorage.setItem(\'clicked_state_{map_key}\', \'{state_name}\'); window.dispatchEvent(new Event(\'storage\')); return false;"'
-                        if 'style="' in tag:
-                            tag = tag.replace('style="', f'{onclick} style="cursor: pointer; ')
-                        else:
-                            tag = tag.replace('>', f' {onclick} style="cursor: pointer;">')
-                    return tag
-
-                svg_data = re.sub(r'<(path|g|rect|polygon|polyline|circle)[^>]*id="([^"]+)"[^>]*>', add_click_handler, svg_data)
             else:
                 color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
                 svg_data = apply_county_colors_to_svg(svg_data, color_map, state_code)
@@ -1129,21 +1113,7 @@ if st.session_state["election_data"]:
                     # === Presidential National View Map ===
                     pres_path = os.path.join("SVG", "presidential.svg")
                     if os.path.exists(pres_path):
-                        render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors, map_key="presidential")
-
-                        # Check for clicked state with unique key
-                        clicked_state = st_javascript("""
-                            const stored = localStorage.getItem('clicked_state_presidential');
-                            if (stored) {
-                                localStorage.removeItem('clicked_state_presidential');
-                                return stored;
-                            }
-                            return null;
-                        """, key=f"check_clicked_state_presidential")
-
-                        if clicked_state:
-                            st.session_state.selected_state = clicked_state
-                            st.rerun()
+                        render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
                     else:
                         st.warning("No national map found for President.")
                 # === Senate/Governor National View Spreadsheet Generator ===
@@ -1350,21 +1320,7 @@ if st.session_state["election_data"]:
                         elif selected_election_type in ["Senate", "Governor"]:
                             states_path = os.path.join("SVG", "states.svg")
                             if os.path.exists(states_path):
-                                render_svg_file(states_path, title=f"🗺️ {selected_election_type} National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors, map_key=selected_election_type.lower())
-
-                                # Check for clicked state with unique key
-                                clicked_state = st_javascript("""
-                                    const stored = localStorage.getItem('clicked_state_""" + selected_election_type.lower() + """');
-                                    if (stored) {
-                                        localStorage.removeItem('clicked_state_""" + selected_election_type.lower() + """');
-                                        return stored;
-                                    }
-                                    return null;
-                                """, key=f"check_clicked_state_{selected_election_type.lower()}")
-
-                                if clicked_state:
-                                    st.session_state.selected_state = clicked_state
-                                    st.rerun()
+                                render_svg_file(states_path, title=f"🗺️ {selected_election_type} National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
 
 
         # === State Legislature National View Spreadsheet Generator ===
