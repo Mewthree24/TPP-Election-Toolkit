@@ -270,16 +270,19 @@ if st.session_state["election_data"]:
                 level = "Safe"
             return f"{level} {winner}"
 
-        def update_df_with_custom_ratings(df, tilt_max, lean_max, likely_max):
+        def update_df_with_custom_ratings(df, tilt_max=None, lean_max=None, likely_max=None):
             df = df.copy()
             if "Rating" in df.columns and "Margin %" in df.columns:
+                # Use session state values if not provided
+                tilt = tilt_max if tilt_max is not None else st.session_state.get("tilt_max", 3)
+                lean = lean_max if lean_max is not None else st.session_state.get("lean_max", 7)
+                likely = likely_max if likely_max is not None else st.session_state.get("likely_max", 12)
+
                 df["Rating"] = df.apply(
                     lambda row: assign_rating(
                         abs(float(str(row["Margin %"]).strip("%"))),
                         row["Rating"].split()[-1] if isinstance(row["Rating"], str) else "",
-                        tilt_max,
-                        lean_max,
-                        likely_max
+                        tilt, lean, likely
                     )
                     if pd.notna(row.get("Rating")) and "%" in str(row["Margin %"])
                     else row.get("Rating", ""),
@@ -491,9 +494,9 @@ if st.session_state["election_data"]:
                 # Apply custom ratings based on session state thresholds
                 df_display = update_df_with_custom_ratings(
                     df_display,
-                    st.session_state["tilt_max"],
-                    st.session_state["lean_max"],
-                    st.session_state["likely_max"]
+                    tilt_max,
+                    lean_max,
+                    likely_max
                 )
                 st.dataframe(df_display, use_container_width=True)
 
@@ -682,7 +685,7 @@ if st.session_state["election_data"]:
                             margin = top - second
                             margin_pct = round(margin / grand_total * 100, 2) if grand_total else 0
                             winner_party = next((c["party"] for c in candidates if c["name"] == sorted_totals[0][0]), "?")
-                            rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct< 10 else "Safe"
+                            rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
                             rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
 
                             ws.cell(row=row_idx, column=col, value="{:,}".format(margin))
@@ -1259,7 +1262,7 @@ if st.session_state["election_data"]:
                         winner_in_group = next((c for c in candidates if c["name"] == winner), None)
                         if winner_in_group:
                             combined = sum(c["votes"] for c in candidates)
-                            party_names[party] = winner_in_group["name"]
+                            party_names[party]= candidates[0]["name"]
                             party_votes[party] = combined
                         else:
                             party_names[party] = candidates[0]["name"]
@@ -1290,13 +1293,12 @@ if st.session_state["election_data"]:
                 sorted_votes = sorted(party_votes.items(), key=lambda x: x[1], reverse=True)
                 margin = int(round(sorted_votes[0][1] - (sorted_votes[1][1] if len(sorted_votes) > 1 else 0)))
                 margin_pct = round(margin / total_vote * 100, 2) if total_vote else 0
-                rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
-                rating_label = f"{rating} {party_labels.get(sorted_votes[0][0], sorted_votes[0][0])}"
+                rating = assign_rating(margin_pct, party_labels.get(sorted_votes[0][0], sorted_votes[0][0]), st.session_state["tilt_max"], st.session_state["lean_max"], st.session_state["likely_max"])
 
                 ws.cell(row=row_idx, column=col_idx, value=f"{margin:,}")
                 ws.cell(row=row_idx, column=col_idx + 1, value=f"{margin_pct:.2f}%")
                 ws.cell(row=row_idx, column=col_idx + 2, value=f"{int(round(total_vote)):,}")
-                ws.cell(row=row_idx, column=col_idx + 3, value=rating_label)
+                ws.cell(row=row_idx, column=col_idx + 3, value=rating)
 
                 grand_total += total_vote
                 row_idx += 1
@@ -1317,13 +1319,12 @@ if st.session_state["election_data"]:
             margin_total = sorted_totals[0][1] - (sorted_totals[1][1] if len(sorted_totals) > 1 else 0)
             margin_pct_total = round(margin_total / grand_total * 100, 2) if grand_total else 0
             winner_party = sorted_totals[0][0]
-            rating = "Tilt" if margin_pct_total < 1 else "Lean" if margin_pct_total < 5 else "Likely" if margin_pct_total < 10 else "Safe"
-            rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+            rating = assign_rating(margin_pct_total, party_labels.get(winner_party, winner_party), st.session_state["tilt_max"], st.session_state["lean_max"], st.session_state["likely_max"])
 
             ws.cell(row=row_idx, column=col_idx, value=f"{margin_total:,}")
             ws.cell(row=row_idx, column=col_idx + 1, value=f"{margin_pct_total:.2f}%")
             ws.cell(row=row_idx, column=col_idx + 2, value=f"{int(round(grand_total)):,}")
-            ws.cell(row=row_idx, column=col_idx + 3, value=rating_label)
+            ws.cell(row=row_idx, column=col_idx + 3, value=rating)
 
             for c in range(1, col_idx + 4):
                 ws.cell(row=row_idx, column=c).font = Font(bold=True)
@@ -1372,10 +1373,7 @@ if st.session_state["election_data"]:
                 df_display = df_display.apply(pd.to_numeric, errors='ignore')
                 # Apply custom ratings based on session state thresholds
                 df_display = update_df_with_custom_ratings(
-                    df_display,
-                    st.session_state["tilt_max"],
-                    st.session_state["lean_max"],
-                    st.session_state["likely_max"]
+                    df_display
                 )
                 st.dataframe(df_display, use_container_width=True)
 
