@@ -22,7 +22,7 @@ def render_svg_file(svg_path: str, title: str = None):
         if title:
             st.subheader(title)
 
-        # Parse SVG with XML parser
+        # Parse SVG with XML parser to extract viewBox
         soup = BeautifulSoup(svg_raw, "xml")
         svg_tag = soup.find("svg")
 
@@ -31,20 +31,22 @@ def render_svg_file(svg_path: str, title: str = None):
             _, _, width, height = map(float, viewbox.strip().split())
             ratio = height / width
         else:
-            ratio = 0.8  # fallback aspect ratio
+            ratio = 0.75  # Fallback ratio
 
-        # CSS technique: responsive SVG that preserves aspect ratio
+        # Calculate height based on a 1000px wide frame
+        pixel_width = 1000
+        pixel_height = int(ratio * pixel_width)
+
+        # Inject SVG in a responsive container
         components.html(
             f"""
-            <div style="position: relative; width: 100%; max-width: 1000px; margin: auto;">
-                <div style="width: 100%; padding-top: {ratio * 100}%; position: relative;">
-                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-                        {svg_raw}
-                    </div>
+            <div style="display: flex; justify-content: center;">
+                <div style="width: 100%; max-width: {pixel_width}px;">
+                    {svg_raw}
                 </div>
             </div>
             """,
-            height=0,  # Streamlit ignores height if 0 + we manage it fully in CSS
+            height=pixel_height + 40,  # Add buffer for label
             scrolling=False
         )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
