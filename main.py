@@ -215,7 +215,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         svg_display = re.sub(
             r'<svg([^>]*)>',
             lambda m: (
-                f'<svg{m.group(1)} preserveAspectRatio="xMidYMid meet" style="max-width: 100%; height: auto; display: block;"'
+                f'<svg{m.group(1)} preserveAspectRatio="xMidYMid meet" style="max-width: 100%; height: auto; display: block;">'
                 if 'style=' not in m.group(1)
                 else re.sub(
                     r'style="[^"]*"',
@@ -223,9 +223,9 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
                     m.group(0)
                 )
             ),
-            svg_data  # ✅ CORRECT INPUT — NOT svg_display again
+            svg_data
         )
-        
+
         components.html(
                 f"""
                 <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
@@ -234,7 +234,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
                     </div>
                 </div>
                 """,
-                height=600 if "ak" not in svg_path.lower() else 400,  # Alaska is wide, needs less height
+                height=825 if "ak" not in svg_path.lower() else 600,  # Alaska is wide, needs less height
                 scrolling=False
             )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
