@@ -1,0 +1,75 @@
+Great work so far—your color-coding system is functioning beautifully! Now let’s address the *St. Lucie* / *St. Johns* style mismatch you're facing where counties with prefixes or punctuation aren’t being colored due to formatting inconsistencies.
+
+### 🔍 Problem Summary
+The issue arises because:
+- SVG IDs use names like `"st_lucie"` and `"st_johns"`,
+- Your spreadsheet lists them as `"St. Lucie County"` or `"St. Johns County"`.
+
+Your current normalization logic:
+```python
+county_id = county.lower().replace(" ", "_").removesuffix("_county") + "_county"
+```
+
+…**does not** remove punctuation like `"."` (periods) or apostrophes, which causes mismatches.
+
+---
+
+### ✅ Solution: Normalize SVG and Spreadsheet County Names Consistently
+
+Update your `normalize_county_id` function to handle these cases properly:
+
+```python
+def normalize_county_id(name):
+    return (
+        name.lower()
+        .replace(" ", "_")
+        .replace("-", "_")
+        .replace(".", "")
+        .replace("'", "")
+        .replace("st_", "st")  # ensure "St. Lucie" → "stlucie"
+        .replace("ste_", "ste")  # handle "Ste." if needed (e.g., Ste. Genevieve)
+        .removesuffix("_county")
+        + "_county"
+    )
+```
+
+This function:
+- Strips spaces, dashes, periods, apostrophes
+- Fixes `"St."` and `"Ste."` edge cases
+- Ensures consistency across SVG and spreadsheet matches
+
+Then update **both places** that generate or read county IDs:
+
+#### In `build_county_color_map(df, ...)`:
+Replace:
+```python
+county_id = county.lower().replace(" ", "_").removesuffix("_county") + "_county"
+```
+
+With:
+```python
+county_id = normalize_county_id(county)
+```
+
+#### In `apply_county_colors_to_svg(...)`:
+Replace:
+```python
+normalized_id = tag_id.lower().replace(" ", "_") + "_county"
+```
+
+With:
+```python
+normalized_id = normalize_county_id(tag_id)
+```
+
+---
+
+### 🧪 Once You Implement That
+Try testing with counties like:
+- `St. Lucie`
+- `St. Johns`
+- `Ste. Genevieve` (if applicable)
+
+And they should color in **perfectly** just like the others!
+
+Would you like me to edit your `main.py` directly to apply this fix?
