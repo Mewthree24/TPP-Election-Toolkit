@@ -308,11 +308,10 @@ clicked_state = st_javascript("""
         return stored;
     }
     return null;
-""", key="check_clicked_state")
+""", key=f"check_clicked_state_{hash(str(st.session_state.get('selected_state', '')))}")
 
 if clicked_state:
     st.session_state.selected_state = clicked_state
-    # Force streamlit to update the selectbox value
     st.rerun()
 
 # Upload file
