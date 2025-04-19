@@ -688,7 +688,7 @@ if st.session_state["election_data"]:
                 with col1:
                     st.markdown("**Democratic Shades**")
                     for level in color_levels:
-                        color_key = f"dem_{level`.lower()}"
+                        color_key = f"dem_{level.lower()}"
                         st.session_state.color_settings["Democratic"][level] = st.color_picker(
                             f"{level} Dem",
                             value=st.session_state.color_settings["Democratic"][level],
