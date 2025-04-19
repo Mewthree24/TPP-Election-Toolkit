@@ -50,12 +50,16 @@ try:
     components.html(
         f"""
         <div style="display: flex; justify-content: center;">
-            <div style="max-width: 800px; width: 100%;">
-                {svg_content}
+            <div style="width: 100%; max-width: 1000px;">
+                <div style="background-color: black; padding: 10px;">
+                    <svg style="width: 100%; height: auto;" viewBox="0 0 810 810" preserveAspectRatio="xMidYMid meet">
+                        {svg_content.split("<svg", 1)[-1].split(">", 1)[-1].rsplit("</svg>", 1)[0]}
+                    </svg>
+                </div>
             </div>
         </div>
         """,
-        height=600,
+        height=700,
         scrolling=False
     )
     st.success("✅ SVG rendered successfully.")
