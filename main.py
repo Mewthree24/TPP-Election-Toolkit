@@ -305,11 +305,10 @@ clicked_state = st_javascript("""
     const stored = localStorage.getItem("clicked_state");
     if (stored) {
         localStorage.removeItem("clicked_state");
-        const selectBox = window.parent.document.querySelector('select[aria-label="Select State"]');
+        const selectBox = document.querySelector('select[data-testid="stSelectbox"]');
         if (selectBox) {
             selectBox.value = stored;
-            const event = new Event('change', { bubbles: true });
-            selectBox.dispatchEvent(event);
+            selectBox.dispatchEvent(new Event('change', { bubbles: true }));
         }
         return stored;
     }
