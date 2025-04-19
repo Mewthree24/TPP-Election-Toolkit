@@ -1,0 +1,59 @@
+Excellent progress — you're nearly there!
+
+From the Alaska map screenshot and the complete `main.py`, I can confirm the following:
+
+### ✅ What’s already working:
+- You correctly detect when the state is **Alaska** with this line:
+  ```python
+  normalized_id = normalize_county_id(tag_id, "Alaska" if state_code == "AK" else None)
+  ```
+- Your `normalize_county_id()` function **does handle** borough-specific replacements like `" borough"`, `" census area"`, etc.
+
+### 🧠 The likely issue:
+The `county_id` derived from your spreadsheet might still have `"County"` appended (e.g., `"Anchorage County"`), and the function will normalize this as `anchorage_county`, not matching `anchorage` in the SVG.
+
+This happens because **the Alaska spreadsheet doesn't use the proper naming convention** (e.g., borough names), and your normalization logic for non-Alaska states forcefully adds `"_county"` at the end.
+
+---
+
+### ✅ How to fix it cleanly:
+Update your `normalize_county_id()` function to handle this more robustly, especially for Alaska:
+
+```python
+def normalize_county_id(name, state=None):
+    name = name.lower().strip()
+
+    # Remove generic suffixes
+    name = (
+        name.replace(" census area", "")
+            .replace(" city and borough", "")
+            .replace(" municipality", "")
+            .replace(" borough", "")
+            .replace(" county", "")
+            .replace(".", "")
+            .replace("'", "")
+            .replace("-", "_")
+            .replace(" ", "_")
+    )
+
+    # Fix common abbreviations (e.g., St. -> st, Ste. -> ste)
+    name = name.replace("st_", "st").replace("ste_", "ste")
+
+    return name
+```
+
+This version:
+- Works for **all states**, not just Alaska.
+- Removes `"County"` for Alaska-like cases, **without tacking on `_county` at the end**.
+- Standardizes all punctuation and spacing.
+
+---
+
+### ✅ Follow-up step:
+If your **spreadsheet source** still says things like `"Anchorage County"` instead of `"Anchorage"`, then this new normalization logic will correctly convert it to `"anchorage"` and match the SVG.
+
+You do **not** need to edit the SVG IDs — this keeps everything centralized in Python.
+
+---
+
+Let me know if you want me to apply this normalization fix directly or if you want to test it first — either way, Alaska should light up immediately afterward.
