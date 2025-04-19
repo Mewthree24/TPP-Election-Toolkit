@@ -227,9 +227,24 @@ if "likely_max" not in st.session_state:
 # Initialize color settings
 if "color_settings" not in st.session_state:
     st.session_state["color_settings"] = {
-        "Democratic": {"Tilt": "#99ccff", "Lean": "#6699ff", "Likely": "#3366cc", "Safe": "#003399"},
-        "Republican": {"Tilt": "#ff9999", "Lean": "#ff6666", "Likely": "#cc3333", "Safe": "#990000"},
-        "Independent": {"Tilt": "#cccc99", "Lean": "#999966", "Likely": "#666633", "Safe": "#333300"}
+      "Democratic": {
+        "Tilt": "#949BB3",
+        "Lean": "#8AAFFF",
+        "Likely": "#577CCC",
+        "Safe": "#1C408C"
+      },
+      "Republican": {
+        "Tilt": "#CF8980",
+        "Lean": "#FF8B98",
+        "Likely": "#FF5865",
+        "Safe": "#BF1D29"
+      },
+      "Independent": {
+        "Tilt": "#FEF4B4",
+        "Lean": "#FED463",
+        "Likely": "#FE9929",
+        "Safe": "#CC4C02"
+      }
     }
 
 st.title("🗳️ TPP Election Toolkit")
