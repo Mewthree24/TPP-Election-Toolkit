@@ -19,9 +19,15 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
     color_map = {}
 
     for _, row in df.iterrows():
-        county = str(row.get("County", "")).strip()
-        rating = str(row.get("Rating", "")).strip()
+        county = row.get("County", "")
+        rating = row.get("Rating", "")
 
+        if pd.isna(county) or pd.isna(rating):
+            continue
+
+        county = str(county).strip()
+        rating = str(rating).strip()
+        
         if not county or not rating:
             continue
 
@@ -38,7 +44,8 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
             else:
                 color = ind_colors.get(strength, "#cccccc")
 
-            county_id = normalize_county_id(county)
+            # Normalize the county ID to match SVG
+            county_id = county.lower().replace(" ", "_") + "_county"
             color_map[county_id] = color
 
     return color_map
