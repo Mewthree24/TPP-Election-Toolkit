@@ -17,6 +17,9 @@ def normalize_county_id(name):
 
 def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
     color_map = {}
+    # Debug print
+    st.write("Available counties in data:", df["County"].tolist())
+    
     for _, row in df.iterrows():
         county = str(row.get("County", "")).strip()
         rating = str(row.get("Rating", "")).strip()
