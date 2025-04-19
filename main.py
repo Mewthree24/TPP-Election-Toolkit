@@ -32,7 +32,7 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
 
             color = "#cccccc"  # Default color
             if party == "Democratic":
-                color = dem_colors.get(strength, "#cccccc")
+                color = dem_colors.get(strength, "#cccccc") 
             elif party == "Republican":
                 color = rep_colors.get(strength, "#cccccc")
             else:
@@ -45,23 +45,27 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
 
 def apply_county_colors_to_svg(svg_text, color_map):
     def replace_fill(match):
-        element = match.group(0)
-        county_id = match.group(1).lower()
-
+        tag = match.group(0)
+        county_id = match.group(2).lower()
         color = color_map.get(county_id)
-        if color:
-            st.write(f"✅ Coloring: {county_id} → {color}")
-            # If it already has a fill attribute, replace it
-            if 'fill="' in element:
-                return re.sub(r'fill="[^"]*"', f'fill="{color}"', element)
-            else:
-                # Inject fill directly after the id attribute
-                return element.replace(f'id="{county_id}"', f'id="{county_id}" fill="{color}"')
-        return element
 
-    # Only target elements with an id attribute
-    colored_svg = re.sub(r'<[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
-    st.code(colored_svg[:1000])  # Show first 1000 characters for debugging
+        if color:
+            st.write(f"🎨 Coloring {county_id} → {color}")
+            if 'style=' in tag:
+                # Replace existing fill in style
+                tag = re.sub(r'fill:[^;"]+', f'fill:{color}', tag)
+            else:
+                # Add new style with fill
+                tag = tag.replace('>', f' style="fill:{color}">')
+            return tag
+        return tag
+
+    # Debug: Show first 5 matching tags
+    st.write("🧩 Matching tags (first 5):", re.findall(r'<(path|g|rect)[^>]*id="([^"]+)"[^>]*>', svg_text)[:5])
+
+    # Only target path/g/rect elements with an id attribute
+    colored_svg = re.sub(r'<(path|g|rect)[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
+    st.code(colored_svg[:1000])  # Show first 1000 characters
     return colored_svg
 
 
@@ -1210,7 +1214,7 @@ if st.session_state["election_data"]:
                     cell.alignment = Alignment(horizontal="center")
 
             row_idx = 3
-            totals = {party: 0 for party in party_order}
+            totals= {party: 0 for party in party_order}
             grand_total = 0
 
             district_counter = 1
