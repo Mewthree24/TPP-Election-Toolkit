@@ -1,0 +1,90 @@
+Thanks for the full code dump — the issue is now very clear.
+
+---
+
+### 🧠 TL;DR:
+Your click **message sending is working**, but **there’s no input handler actually reading the click data** due to the way Streamlit runs everything inside an iframe. Your `window.parent.postMessage(...)` approach **can’t affect the Streamlit session from the HTML iframe directly**.
+
+---
+
+### ✅ Solution:
+
+We’ll **replace the existing JS → DOM manipulation approach** with a method that works with Streamlit by **bridging clicks through `streamlit_javascript`**.
+
+You already attempted this with:
+
+```python
+clicked_state = st_javascript("""
+    window.clicked_state = null;
+    window.addEventListener('message', function(e) {
+        if (e.data.type === 'selectState') {
+            window.clicked_state = e.data.state;
+        }
+    });
+    return window.clicked_state;
+""")
+```
+
+But there's one big problem:  
+`st_javascript` **runs once at page load** and doesn't stay “alive” to listen for new messages.
+
+---
+
+### ✅ The Fix: Use a Persistent Listener and Poll Value
+
+Here’s what we’ll do instead:
+
+#### 1. Inject into the page a persistent storage for the clicked state:
+Inside your **HTML injected in `render_svg_file()`**, below your `<script>...</script>` block, add this at the bottom:
+
+```html
+<script>
+window.addEventListener('message', function(e) {
+    if (e.data.type === 'selectState') {
+        localStorage.setItem('clicked_state', e.data.state);
+    }
+});
+</script>
+```
+
+This saves the clicked state to `localStorage`, which we can poll in Python via JavaScript.
+
+---
+
+#### 2. Update your `st_javascript()` block to **poll `localStorage`**:
+Right after `st.set_page_config(...)` or near the top of your app, replace your old `st_javascript` block with this:
+
+```python
+clicked_state = st_javascript("""
+    const clicked = localStorage.getItem('clicked_state');
+    if (clicked) {
+        localStorage.removeItem('clicked_state');
+    }
+    return clicked;
+""")
+```
+
+This will **check for a clicked state** every time the app reruns. When it finds one, it returns the value and removes it so it doesn’t trigger repeatedly.
+
+---
+
+#### 3. Set it in session and rerun:
+```python
+if clicked_state:
+    st.session_state["selected_state"] = clicked_state
+    st.experimental_rerun()
+```
+
+---
+
+### 🧪 Now What Will Happen:
+
+1. User clicks a state
+2. JS inside the map writes `clicked_state` into `localStorage`
+3. Streamlit polls for it via `st_javascript`
+4. If it sees one, updates `st.session_state["selected_state"]`
+5. Triggers rerun, and map + spreadsheet update correctly
+
+---
+
+Would you like me to apply the patch now in a clean way to your latest code?
