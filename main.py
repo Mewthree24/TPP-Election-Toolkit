@@ -305,11 +305,18 @@ clicked_state = st_javascript("""
     const stored = localStorage.getItem("clicked_state");
     if (stored) {
         localStorage.removeItem("clicked_state");
+        const selectBox = window.parent.document.querySelector('select[aria-label="Select State"]');
+        if (selectBox) {
+            selectBox.value = stored;
+            const event = new Event('change', { bubbles: true });
+            selectBox.dispatchEvent(event);
+        }
+        return stored;
     }
-    return stored;
+    return null;
 """)
 
-if clicked_state and clicked_state in state_code_to_name.values():
+if clicked_state:
     st.session_state["selected_state"] = clicked_state
     st.experimental_rerun()
 
