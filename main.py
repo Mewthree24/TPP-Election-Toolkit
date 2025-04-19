@@ -308,7 +308,7 @@ clicked_state = st_javascript("""
         return stored;
     }
     return null;
-""")
+""", key="check_clicked_state")
 
 if clicked_state:
     st.session_state.selected_state = clicked_state
