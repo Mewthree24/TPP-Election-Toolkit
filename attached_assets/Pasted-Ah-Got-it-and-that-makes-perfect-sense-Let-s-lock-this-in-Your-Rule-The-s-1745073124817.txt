@@ -1,0 +1,68 @@
+Ah! Got it — and that makes perfect sense. Let’s lock this in:
+
+---
+
+### ✅ Your Rule:
+- The **spreadsheet should keep clean county names** like `"Prince of Wales-Hyder"` (no underscores).
+- **Only the SVG color logic** should normalize county names using `"_"`.
+
+That way:
+- ✅ The user sees readable names in the spreadsheet.
+- ✅ The backend still finds and colors matching SVG paths correctly.
+
+---
+
+### ✅ Solution (Targeted Normalization for SVG Matching Only)
+
+We'll use a helper function **only during the SVG coloring step**:
+
+```python
+def normalize_county_id(name):
+    return name.lower().replace(" ", "_").replace("-", "_").replace(".", "").replace("'", "")
+```
+
+---
+
+### 🧱 Updated `build_county_color_map()` to Keep Display Names Intact, but Match SVG:
+
+```python
+def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
+    color_map = {}
+    for _, row in df.iterrows():
+        county = str(row.get("County", "")).strip()
+        rating = str(row.get("Rating", "")).strip()
+
+        if not county or not rating:
+            continue
+
+        try:
+            strength, party = rating.split()
+            if party == "Democratic":
+                color = dem_colors.get(strength, "#cccccc")
+            elif party == "Republican":
+                color = rep_colors.get(strength, "#cccccc")
+            else:
+                color = ind_colors.get(strength, "#cccccc")
+
+            # Only normalize here for internal map use
+            county_id = normalize_county_id(county)
+            color_map[county_id] = color
+        except:
+            continue
+
+    return color_map
+```
+
+---
+
+### 🖍️ Your `apply_county_colors_to_svg()` stays the same — it uses those normalized keys to match `id="..."`.
+
+This way:
+- Your spreadsheets remain readable
+- Coloring logic becomes flexible and robust
+- You avoid the messy look of `county_name_like_this` in the UI
+
+---
+
+### ✅ Let’s Test
+Would you like me to help patch your `main.py` with this logic, or are you ready to drop this in and try again?
