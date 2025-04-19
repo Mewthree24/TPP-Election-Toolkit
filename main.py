@@ -322,19 +322,9 @@ if uploaded_file:
     except Exception as e:
         st.error(f"Failed to load file: {e}")
 
-# Check for clicked state from localStorage
-clicked_state = st_javascript("""
-    const stored = localStorage.getItem("clicked_state");
-    if (stored) {
-        localStorage.removeItem("clicked_state");
-        return stored;
-    }
-    return null;
-""")
-
-if clicked_state and clicked_state in state_code_to_name.values():
-    st.session_state["selected_state"] = clicked_state
-    st.experimental_rerun()
+# Initialize session state for selected state
+if "selected_state" not in st.session_state:
+    st.session_state.selected_state = "National View"
 
 if st.session_state["election_data"]:
 
@@ -368,7 +358,12 @@ if st.session_state["election_data"]:
     if available_election_types:
         selected_election_type = st.selectbox("Select Election Type", available_election_types)
         
+        # Initialize state selection if not present
+        if "selected_state" not in st.session_state:
+            st.session_state.selected_state = "National View"
+
         # Check for clicked state from localStorage
+        key_base = f"{selected_election_type}_{hash(str(st.session_state.get('selected_state', '')))}"
         clicked_state = st_javascript("""
             const stored = localStorage.getItem("clicked_state");
             if (stored) {
@@ -376,11 +371,11 @@ if st.session_state["election_data"]:
                 return stored;
             }
             return null;
-        """, key=f"check_clicked_state_{hash(str(st.session_state.get('selected_state', '')))}-{selected_election_type}")
+        """, key=f"check_clicked_state_{key_base}")
 
         if clicked_state:
             st.session_state.selected_state = clicked_state
-            st.rerun()
+            st.experimental_rerun()
         election_key = election_types[selected_election_type]
         election_data = st.session_state["election_data"][election_key]
 
