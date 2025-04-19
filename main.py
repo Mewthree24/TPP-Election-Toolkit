@@ -11,9 +11,14 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
 def render_svg_file(svg_path: str, title: str = None):
+    import base64
+    import streamlit.components.v1 as components
+
     try:
         with open(svg_path, "r", encoding="utf-8") as f:
-            svg_raw = f.read()
+            svg_content = f.read()
+
+        svg_base64 = base64.b64encode(svg_content.encode()).decode()
 
         if title:
             st.subheader(title)
@@ -21,16 +26,12 @@ def render_svg_file(svg_path: str, title: str = None):
         components.html(
             f"""
             <div style="display: flex; justify-content: center;">
-                <div style="width: 100%; max-width: 1000px;">
-                    <div style="padding: 10px;">
-                        <div style="width: 100%; height: auto;">
-                            {svg_raw}
-                        </div>
-                    </div>
-                </div>
+                <object type="image/svg+xml" data="data:image/svg+xml;base64,{svg_base64}"
+                        style="max-width: 1000px; width: 100%; height: 700px; object-fit: contain;">
+                </object>
             </div>
             """,
-            height=700,
+            height=720,
             scrolling=False
         )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
