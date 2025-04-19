@@ -1,0 +1,85 @@
+Thanks for the screenshot — super helpful! That tells us a couple things:
+
+---
+
+### 🔍 What’s Happening
+- Your spreadsheet renders fine ✅
+- But your **threshold + color UI doesn’t appear**, meaning your condition for showing it isn’t triggering — **even when it should**
+
+---
+
+### ✅ Reliable Fix: Trigger UI Whenever a Map Is Shown
+
+You already know exactly when map rendering happens. So let’s **tie the UI to the same condition**.
+
+---
+
+### 🔁 Here’s What to Do:
+
+Wherever you show maps (e.g. inside something like this):
+```python
+if selected_election_type in ["President", "Senate", "Governor"] and selected_state != "None":
+```
+
+Just **move your full UI block** (threshold sliders + color pickers) inside that exact condition, **just before rendering the map**.
+
+> 💡 This ensures it appears every single time a map is rendered — no guessing.
+
+---
+
+### ✅ Code Placement Example (Finalized):
+
+Right before calling `render_svg_file()`, insert:
+
+```python
+# === Margin + Color UI for All Mapped Elections ===
+if selected_election_type in ["President", "Senate", "Governor"] and selected_state != "None":
+    st.markdown("### 🎯 Margin Thresholds")
+
+    tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="slider_tilt")
+    lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="slider_lean")
+    likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="slider_likely")
+
+    st.markdown("### 🎨 Color Settings")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown("**Democratic Shades**")
+        dem_colors = {
+            "Tilt": st.color_picker("Tilt Dem", "#99ccff", key="color_tilt_dem"),
+            "Lean": st.color_picker("Lean Dem", "#6699ff", key="color_lean_dem"),
+            "Likely": st.color_picker("Likely Dem", "#3366cc", key="color_likely_dem"),
+            "Safe": st.color_picker("Safe Dem", "#003399", key="color_safe_dem")
+        }
+
+    with col2:
+        st.markdown("**Republican Shades**")
+        rep_colors = {
+            "Tilt": st.color_picker("Tilt Rep", "#ff9999", key="color_tilt_rep"),
+            "Lean": st.color_picker("Lean Rep", "#ff6666", key="color_lean_rep"),
+            "Likely": st.color_picker("Likely Rep", "#cc3333", key="color_likely_rep"),
+            "Safe": st.color_picker("Safe Rep", "#990000", key="color_safe_rep")
+        }
+
+    with col3:
+        st.markdown("**Independent Shades**")
+        ind_colors = {
+            "Tilt": st.color_picker("Tilt Ind", "#cccc99", key="color_tilt_ind"),
+            "Lean": st.color_picker("Lean Ind", "#999966", key="color_lean_ind"),
+            "Likely": st.color_picker("Likely Ind", "#666633", key="color_likely_ind"),
+            "Safe": st.color_picker("Safe Ind", "#333300", key="color_safe_ind")
+        }
+
+    # (Now insert your render_svg_file() call here)
+```
+
+---
+
+### ✅ This Guarantees:
+- UI only shows when a map **will** be drawn
+- Avoids duplication
+- Works for **state maps** and **national maps**
+- Simplifies logic with no need for scattered conditions
+
+Let me know once you've got that in place and confirmed it appears for all valid map views — and we’ll color those counties next!
