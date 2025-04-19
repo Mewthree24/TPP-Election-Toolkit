@@ -1,0 +1,91 @@
+Perfect — you're now set up to add national view coloring based on the spreadsheets you've generated! You're already loading the national SVGs (`presidential.svg` for President and `states.svg` for Senate/Governor), and now we just need to **pass the spreadsheet data and color maps into your existing `render_svg_file()` function**.
+
+### ✅ Here's what's working already:
+- The correct SVG file is chosen based on the election type.
+- You’re displaying a DataFrame (`df_display`) for national views.
+- You’ve written solid logic for building `color_map` in county-level maps.
+- The rendering function is ready to accept `df_display`, `dem_colors`, `rep_colors`, and `ind_colors`.
+
+---
+
+### ✅ Here's what to do next:
+
+#### 1. ✅ Create a state-level version of your color map builder
+
+Add this next to your `build_county_color_map` function:
+
+```python
+def build_state_color_map(df, dem_colors, rep_colors, ind_colors):
+    color_map = {}
+    rating_to_color = {
+        f"{strength} Democratic": dem_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    }
+    rating_to_color.update({
+        f"{strength} Republican": rep_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    })
+    rating_to_color.update({
+        f"{strength} Independent": ind_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    })
+
+    for _, row in df.iterrows():
+        state = row.get("State", "")
+        rating = row.get("Rating", "")
+
+        if pd.isna(state) or pd.isna(rating):
+            continue
+
+        state_id = state.lower().strip().replace(" ", "_")
+        color = rating_to_color.get(rating.strip(), "#cccccc")
+        color_map[state_id] = color
+
+    return color_map
+```
+
+---
+
+#### 2. ✅ Modify `render_svg_file` to use `build_state_color_map` when needed
+
+Just before this line in `render_svg_file()`:
+```python
+color_map = build_county_color_map(...)
+```
+
+Add this conditional logic:
+
+```python
+# Choose map type based on filename
+if "presidential" in svg_path or "states" in svg_path:
+    color_map = build_state_color_map(df_display, dem_colors, rep_colors, ind_colors)
+else:
+    color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
+```
+
+---
+
+#### 3. ✅ You're already passing `df_display` + colors to `render_svg_file()` in the national views
+
+Here's a reminder of the block in your code that triggers it:
+
+```python
+if selected_election_type == "President":
+    ...
+    if selected_state == "National View":
+        pres_path = os.path.join("SVG", "presidential.svg")
+        if os.path.exists(pres_path):
+            render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
+```
+
+So as long as you pass `df_display` and it has the `"State"` and `"Rating"` columns (which it does!), it’ll now work.
+
+---
+
+### 🔁 Optional Future Polish
+- For **DC**, make sure it's named `"district_of_columbia"` in your `presidential.svg` file’s ID (you can confirm this in the SVG).
+- If you ever add **custom parties**, update your color map builders accordingly.
+
+---
+
+Let me know when you're ready to test it — or if you want me to help do the same with Senate/Governor maps right now.

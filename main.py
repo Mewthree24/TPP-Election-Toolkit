@@ -157,16 +157,6 @@ pres_svg = "presidential.svg" in svg_files
 states_svg = "states.svg" in svg_files
 state_svgs = sorted([f for f in svg_files if f not in ("presidential.svg", "states.svg")])
 
-st.sidebar.subheader("🗺️ SVG Map Files")
-st.sidebar.write(f"📁 SVG Folder: `{svg_folder_path}`")
-st.sidebar.write(f"Presidential National Map: {'✅' if pres_svg else '❌'}")
-st.sidebar.write(f"Senate/Governor National Map: {'✅' if states_svg else '❌'}")
-st.sidebar.write(f"State Maps Loaded: {len(state_svgs)}")
-
-# Optional debug view
-if st.sidebar.checkbox("🔍 Show All State SVGs"):
-    st.sidebar.write(state_svgs)
-
 # Initialize session
 if "election_data" not in st.session_state:
     st.session_state["election_data"] = {}
