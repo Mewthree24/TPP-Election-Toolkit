@@ -54,9 +54,9 @@ def build_state_color_map(df, dem_colors, rep_colors, ind_colors):
         if pd.isna(state) or pd.isna(rating):
             continue
 
-        state_id = state.lower().strip().replace(" ", "_")
+        normalized = state.strip().upper()
         color = rating_to_color.get(rating.strip(), "#cccccc")
-        color_map[state_id] = color
+        color_map[normalized] = color
 
     return color_map
 
@@ -101,27 +101,8 @@ def apply_state_colors_to_svg(svg_text, color_map):
         tag_type = match.group(1)
         tag_id = match.group(2)
 
-        # Normalize state ID
-        normalized_id = tag_id.lower().strip().replace(" ", "_")
-        color = color_map.get(normalized_id)
-        
-        if color:
-            if 'style=' in tag:
-                tag = re.sub(r'fill:[^;"]+', f'fill:{color}', tag)
-            else:
-                tag = tag.replace('>', f' style="fill:{color}">')
-        return tag
-
-    return re.sub(r'<(path|g|rect)[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
-
-def apply_county_colors_to_svg(svg_text, color_map, state_code=None):
-    def replace_fill(match):
-        tag = match.group(0)
-        tag_type = match.group(1)
-        tag_id = match.group(2)
-
-        # Normalize SVG ID to match the spreadsheet logic
-        normalized_id = normalize_county_id(tag_id, "Alaska" if state_code == "AK" else None)
+        # SVG uses 2-letter state codes like "NY" 
+        normalized_id = tag_id.strip().upper()
         color = color_map.get(normalized_id)
 
         if color:
@@ -131,8 +112,8 @@ def apply_county_colors_to_svg(svg_text, color_map, state_code=None):
                 tag = tag.replace('>', f' style="fill:{color}">')
         return tag
 
-    # Match all tag types with an id attribute
-    return re.sub(r'<(path|g|rect)[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
+    # Match all valid SVG shape tags
+    return re.sub(r'<(path|g|rect|polygon|polyline|circle)[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
 
 
 def display_national_map(election_type):
@@ -554,7 +535,7 @@ if st.session_state["election_data"]:
                 # Add save/load UI in a container to keep it compact
                 with st.container():
                     save_col, load_col = st.columns(2)
-                    
+
                     with save_col:
                         if st.button("💾 Save Colors"):
                             json_str = json.dumps(st.session_state["color_settings"], indent=2)
@@ -564,7 +545,7 @@ if st.session_state["election_data"]:
                                 file_name="color_settings.json",
                                 mime="application/json"
                             )
-                    
+
                     with load_col:
                         uploaded_file = st.file_uploader("📤 Load Colors", type=["json"])
                         if uploaded_file is not None:
@@ -1307,7 +1288,7 @@ if st.session_state["election_data"]:
 
                 # Group candidates by party
                 for c in entry.get("cands", []):
-                    party_groups[c["party"]].append(c)
+                            party_groups[c["party"]].append(c)
 
                 # Prepare vote summary by party
                 party_votes = {}
