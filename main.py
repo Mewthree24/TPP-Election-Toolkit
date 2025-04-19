@@ -1303,7 +1303,8 @@ if st.session_state["election_data"]:
                                 label = "Unnamed"
 
                             if label in used_names:
-                                count = used_names[label] + 1                                used_names[label] = count
+                                count = used_names[label] + 1
+                                used_names[label] = count
                                 label = f"{label} ({count})"
                             else:
                                 used_names[label] = 1
