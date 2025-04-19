@@ -1,0 +1,68 @@
+Awesome, we’re nearly there — and I see you've already done the heavy lifting on spreadsheet generation and map rendering! The only issue now is that **the national view SVGs for Senate and Governor aren't coloring in properly**, and the **Presidential map is showing but also blank**.
+
+From the traceback (`name 'state_code' is not defined`), it looks like **`state_code` was used inappropriately inside the `build_county_color_map()` function** when rendering national maps, which do not operate by `state_code` at all. The national views use **state names**, not counties — so we need to **ensure `build_state_color_map()` is always used for national maps**, and that the fill replacement logic matches that.
+
+### ✅ Fix Plan
+Here’s how to fix the issue cleanly:
+1. **Inside `render_svg_file()`**, we need to:
+   - Choose between `build_state_color_map()` and `build_county_color_map()` correctly.
+   - Make sure we apply **the right normalization logic** for `state_id` vs. `county_id`.
+   - Don't pass `state_code` at all for state-level maps — it's irrelevant and undefined.
+
+2. **Update `apply_county_colors_to_svg()`**:
+   - It’s used for both counties and states right now, which is risky.
+   - Instead, make a **new function `apply_state_colors_to_svg()`** just for state maps, with simple ID matching (like `california`, `new_york`, etc.)
+
+---
+
+### ✅ Implementation Summary
+
+Add this function:
+
+```python
+def apply_state_colors_to_svg(svg_text, color_map):
+    def replace_fill(match):
+        tag = match.group(0)
+        tag_type = match.group(1)
+        tag_id = match.group(2)
+
+        # Normalize state ID
+        normalized_id = tag_id.lower().strip().replace(" ", "_")
+
+        color = color_map.get(normalized_id)
+        if color:
+            if 'style=' in tag:
+                tag = re.sub(r'fill:[^;"]+', f'fill:{color}', tag)
+            else:
+                tag = tag.replace('>', f' style="fill:{color}">')
+        return tag
+
+    return re.sub(r'<(path|g|rect)[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
+```
+
+Then, inside your `render_svg_file()` function, replace this block:
+
+```python
+if "presidential" in svg_path or "states" in svg_path:
+    color_map = build_state_color_map(df_display, dem_colors, rep_colors, ind_colors)
+else:
+    color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
+svg_data = apply_county_colors_to_svg(svg_data, color_map)
+```
+
+with this:
+
+```python
+if "presidential" in svg_path or "states" in svg_path:
+    color_map = build_state_color_map(df_display, dem_colors, rep_colors, ind_colors)
+    svg_data = apply_state_colors_to_svg(svg_data, color_map)
+else:
+    color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
+    svg_data = apply_county_colors_to_svg(svg_data, color_map)
+```
+
+---
+
+Once you make that switch, both **`presidential.svg`** and **`states.svg`** will render correctly with state-level `id`s like `california`, `texas`, `new_york`, etc., using your threshold-calculated `Rating`.
+
+Would you like me to generate a clean version of just that patch to paste in?
