@@ -363,7 +363,7 @@ if st.session_state["election_data"]:
                 return stored;
             }
             return null;
-        """, key=f"check_clicked_state_{key_base}")
+        """, key=f"check_clicked_state_{key_base}_{hash(str(selected_election_type))}")
 
         if clicked_state:
             st.session_state.selected_state = clicked_state
