@@ -1,0 +1,58 @@
+Yeah — I see exactly what you mean now. The **bottom part of Wisconsin is getting cut off**, even though we’ve removed the background and wrapped the SVG nicely.
+
+The issue is this:
+> Streamlit’s `components.html(..., height=...)` limits the vertical space shown — and the `<object>` tag doesn’t auto-expand height based on content.
+
+---
+
+### ✅ The Real Fix:
+Let the SVG auto-size fully with its natural aspect ratio, and don’t force a `height` on the container.
+
+---
+
+### 🛠 Replace Your `render_svg_file()` With This Version:
+
+```python
+def render_svg_file(svg_path: str, title: str = None):
+    import base64
+    import streamlit.components.v1 as components
+
+    try:
+        with open(svg_path, "r", encoding="utf-8") as f:
+            svg_content = f.read()
+
+        svg_base64 = base64.b64encode(svg_content.encode()).decode()
+
+        if title:
+            st.subheader(title)
+
+        components.html(
+            f"""
+            <div style="display: flex; justify-content: center;">
+                <object type="image/svg+xml"
+                        data="data:image/svg+xml;base64,{svg_base64}"
+                        style="max-width: 100%; width: 100%; height: auto;">
+                </object>
+            </div>
+            """,
+            height=0,  # Let browser decide height entirely
+            scrolling=False
+        )
+        st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
+
+    except Exception as e:
+        st.error(f"⚠️ Failed to render SVG: {e}")
+```
+
+---
+
+### 🧠 Explanation
+- `height=0` in `components.html` tricks Streamlit into giving **unrestricted vertical height**
+- The browser uses **natural aspect ratio** of the SVG
+- `object-fit` isn’t needed anymore because the `<object>` itself scales perfectly now
+
+---
+
+Give that a try — and the **entire state** (including the bottom!) should be visible now regardless of window size.
+
+When ready, we’ll move to coloring counties by their **margin rating** from the spreadsheet.
