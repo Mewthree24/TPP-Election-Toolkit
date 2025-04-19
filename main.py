@@ -659,7 +659,7 @@ if st.session_state["election_data"]:
                                 rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
 
                                 ws.cell(row=row_idx, column=col, value="{:,}".format(margin))
-                               ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
+                                ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
                                 ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(total_vote))))
                                 ws.cell(row=row_idx, column=col + 3, value=rating_label)
                                 row_idx += 1
