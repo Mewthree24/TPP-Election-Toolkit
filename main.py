@@ -531,6 +531,33 @@ if st.session_state["election_data"]:
                 st.markdown("### 🎨 Color Customizer")
                 col1, col2, col3 = st.columns(3)
 
+                # Add save/load UI in a container to keep it compact
+                with st.container():
+                    save_col, load_col = st.columns(2)
+                    
+                    with save_col:
+                        if st.button("💾 Save Colors"):
+                            json_str = json.dumps(st.session_state["color_settings"], indent=2)
+                            st.download_button(
+                                label="📥 Download Settings",
+                                data=json_str,
+                                file_name="color_settings.json",
+                                mime="application/json"
+                            )
+                    
+                    with load_col:
+                        uploaded_file = st.file_uploader("📤 Load Colors", type=["json"])
+                        if uploaded_file is not None:
+                            try:
+                                uploaded_colors = json.load(uploaded_file)
+                                if all(party in uploaded_colors for party in ["Democratic", "Republican", "Independent"]):
+                                    st.session_state["color_settings"] = uploaded_colors
+                                    st.success("✅ Colors loaded!")
+                                else:
+                                    st.error("⚠️ Invalid color file format")
+                            except Exception as e:
+                                st.error(f"⚠️ Failed to load colors: {e}")
+
                 # Create a unique identifier based on location in code
                 color_ui_id = f"national_view_{hash(selected_state + selected_election_type)}"
 
