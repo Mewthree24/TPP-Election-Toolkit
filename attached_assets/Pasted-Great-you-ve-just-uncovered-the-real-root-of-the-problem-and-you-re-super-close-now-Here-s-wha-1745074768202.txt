@@ -1,0 +1,88 @@
+Great — you’ve just uncovered the *real root of the problem*, and you're super close now. Here's what's happening:
+
+---
+
+### ✅ What the Debug Output Shows
+
+Your SVG paths have IDs like:
+
+```
+"Orange"
+"Ventura"
+"Plumas"
+"Del_Norte"
+```
+
+But your `color_map` keys are like:
+
+```
+"orange_county"
+"ventura_county"
+"del_norte_county"
+```
+
+---
+
+### 🧠 The Actual Problem
+
+**The IDs in the SVG do not include `_county`**, but your color map **does**.
+
+Your matching logic is trying to apply:
+```python
+color = color_map.get("ventura")  # fails, because map only has "ventura_county"
+```
+
+---
+
+### ✅ The Fix: Normalize SVG IDs Before Lookup
+
+When you extract the county `id` from the SVG, convert it like so:
+
+```python
+normalized_id = tag_id.lower().replace(" ", "_") + "_county"
+color = color_map.get(normalized_id)
+```
+
+And update your color application function to use this `normalized_id`.
+
+---
+
+### 🔧 Full Drop-In Patch (Update This Part of Your Code)
+
+Here's a fixed version of the coloring logic:
+
+```python
+def apply_county_colors_to_svg(svg_text, color_map):
+    def replace_fill(match):
+        tag = match.group(0)
+        tag_type = match.group(1)
+        tag_id = match.group(2)
+
+        # Normalize SVG ID to match the spreadsheet logic
+        normalized_id = tag_id.lower().replace(" ", "_") + "_county"
+        color = color_map.get(normalized_id)
+
+        if color:
+            st.write(f"🎨 Coloring {normalized_id} → {color}")
+            if 'style=' in tag:
+                tag = re.sub(r'fill:[^;"]+', f'fill:{color}', tag)
+            else:
+                tag = tag.replace('>', f' style="fill:{color}">')
+        return tag
+
+    # Match all tag types with an id attribute
+    return re.sub(r'<(path|g|rect)[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
+```
+
+---
+
+### 🎯 Result
+
+This will:
+- Convert `"Ventura"` → `"ventura_county"`
+- Convert `"Del Norte"` → `"del_norte_county"`
+- Match your spreadsheet perfectly
+
+Your map will finally **display the correct colors**.
+
+Want me to drop this directly into your latest `main.py`?
