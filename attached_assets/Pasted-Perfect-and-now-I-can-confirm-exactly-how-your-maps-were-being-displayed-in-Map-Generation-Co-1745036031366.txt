@@ -1,0 +1,83 @@
+Perfect — and now I can confirm **exactly** how your maps were being displayed in `Map_Generation_Code(...)`, which works correctly and does not cut off the bottom of the state.
+
+---
+
+### ✅ How Maps Were Rendered in the Working Code
+
+```python
+st.components.v1.html(
+    f"""
+    <div style="display: flex; justify-content: center;">
+        <div style="max-width: 1000px; width: 100%;">
+            {colored_svg}
+        </div>
+    </div>
+    """,
+    height=700,
+    scrolling=False
+)
+```
+
+✅ **Key Things to Note**:
+- The full `<svg>` (already edited by BeautifulSoup) is inserted as raw HTML.
+- It **does not strip the `<svg>` tag**.
+- The display div has **fixed width, but auto height based on inner SVG viewBox**.
+- Most importantly: the SVG itself has an intact `viewBox`, which preserves proper scaling and boundaries.
+
+---
+
+### 💥 Your Current `render_svg_file()` vs. This
+Your code tried to wrap the `<svg>` tag in containers or modify its scaling — which leads to clipping issues.  
+But the code in `Map_Generation_Code(...)` **just renders the modified full SVG string** with no special wrappers inside `st.components.v1.html(...)`.
+
+---
+
+### ✅ Final Answer: Use the Same Display Logic
+
+Update your `render_svg_file()` function to this final working version:
+
+```python
+def render_svg_file(svg_path: str, title: str = None):
+    import streamlit.components.v1 as components
+    from bs4 import BeautifulSoup
+
+    try:
+        with open(svg_path, "r", encoding="utf-8") as f:
+            svg_raw = f.read()
+
+        if title:
+            st.subheader(title)
+
+        # Let SVG control its own sizing
+        components.html(
+            f"""
+            <div style="display: flex; justify-content: center;">
+                <div style="max-width: 1000px; width: 100%;">
+                    {svg_raw}
+                </div>
+            </div>
+            """,
+            height=700,
+            scrolling=False
+        )
+
+        st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
+    except Exception as e:
+        st.error(f"⚠️ Failed to render SVG: {e}")
+```
+
+🧼 No `object`, no aspect ratio hacks, no manual `<svg>` reconstruction.
+
+---
+
+### ✅ Summary
+
+| Approach                     | Result         |
+|-----------------------------|----------------|
+| Injecting whole `<svg>` tag | ✅ Works best   |
+| Using `<object>`            | ❌ Inconsistent |
+| Splitting `<svg>` inner HTML | ❌ Breaks viewBox, causes cutoff |
+
+---
+
+Let me know when that’s plugged in — and we can finally move to **coloring the counties** with spreadsheet margins!
