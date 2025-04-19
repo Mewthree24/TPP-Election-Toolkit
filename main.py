@@ -229,16 +229,10 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             svg_display
         )
 
-        # Create base64 of modified SVG
-        encoded = base64.b64encode(svg_display.encode()).decode()
-
         components.html(
             f"""
             <div style="width: 100%; margin: 0 auto;">
-                <object data="data:image/svg+xml;base64,{encoded}"
-                        type="image/svg+xml" 
-                        style="width: 100%; height: auto; max-height: 700px; display: block;">
-                </object>
+                {svg_display}
             </div>
             """,
             height=700,
