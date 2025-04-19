@@ -32,6 +32,34 @@ def normalize_county_id(name, state=None):
     # Return normalized name
     return name
 
+def build_state_color_map(df, dem_colors, rep_colors, ind_colors):
+    color_map = {}
+    rating_to_color = {
+        f"{strength} Democratic": dem_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    }
+    rating_to_color.update({
+        f"{strength} Republican": rep_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    })
+    rating_to_color.update({
+        f"{strength} Independent": ind_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    })
+
+    for _, row in df.iterrows():
+        state = row.get("State", "")
+        rating = row.get("Rating", "")
+
+        if pd.isna(state) or pd.isna(rating):
+            continue
+
+        state_id = state.lower().strip().replace(" ", "_")
+        color = rating_to_color.get(rating.strip(), "#cccccc")
+        color_map[state_id] = color
+
+    return color_map
+
 def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
     color_map = {}
     rating_to_color = {
@@ -117,7 +145,11 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
 
         # Apply coloring if we have display data and color schemes
         if df_display is not None and dem_colors and rep_colors and ind_colors:
-            color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
+            # Choose map type based on filename
+            if "presidential" in svg_path or "states" in svg_path:
+                color_map = build_state_color_map(df_display, dem_colors, rep_colors, ind_colors)
+            else:
+                color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
             svg_data = apply_county_colors_to_svg(svg_data, color_map)
 
         encoded = base64.b64encode(svg_data.encode()).decode()
