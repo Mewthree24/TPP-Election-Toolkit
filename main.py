@@ -234,13 +234,6 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
 
         components.html(
             f"""
-            <script>
-            window.addEventListener('message', function(e) {{
-                if (e.data.type === 'selectState') {{
-                    localStorage.setItem('clicked_state', e.data.state);
-                }}
-            }});
-            </script>
             <div style="width: 100%; display: flex; justify-content: center; align-items: center;">
                 <div style="width: 100%; max-width: 1200px; margin: 0 auto;">
                     <div style="position: relative; width: 100%; padding-bottom: 60%;">
@@ -306,6 +299,19 @@ if "color_settings" not in st.session_state:
     }
 
 st.title("🗳️ TPP Election Toolkit")
+
+# Check for clicked state from localStorage
+clicked_state = st_javascript("""
+    const stored = localStorage.getItem("clicked_state");
+    if (stored) {
+        localStorage.removeItem("clicked_state");
+    }
+    return stored;
+""")
+
+if clicked_state and clicked_state in state_code_to_name.values():
+    st.session_state["selected_state"] = clicked_state
+    st.experimental_rerun()
 
 # Upload file
 uploaded_file = st.file_uploader("Upload your savefile", type=["json"])
