@@ -237,11 +237,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             <script>
             window.addEventListener('message', function(e) {{
                 if (e.data.type === 'selectState') {{
-                    const selectBox = window.parent.document.querySelector('select[aria-label="Select State"]');
-                    if (selectBox) {{
-                        selectBox.value = e.data.state;
-                        selectBox.dispatchEvent(new Event('change', {{ bubbles: true }}));
-                    }}
+                    localStorage.setItem('clicked_state', e.data.state);
                 }}
             }});
             </script>
@@ -692,7 +688,7 @@ if st.session_state["election_data"]:
                 with col1:
                     st.markdown("**Democratic Shades**")
                     for level in color_levels:
-                        color_key = f"dem_{level.lower()}"
+                        color_key = f"dem_{level`.lower()}"
                         st.session_state.color_settings["Democratic"][level] = st.color_picker(
                             f"{level} Dem",
                             value=st.session_state.color_settings["Democratic"][level],
@@ -1314,7 +1310,7 @@ if st.session_state["election_data"]:
                             header_row.append(label)
 
                     data_rows = excel_rows[2:]
-                    df_display = pd.DataFrame(data_rows, columns=header_row)
+                    df_display = pd.DataFrame(data_rows, columns=headerrow)
                     # Convert all numeric-like strings to numeric values
                     df_display = df_display.apply(pd.to_numeric, errors='ignore')
 
