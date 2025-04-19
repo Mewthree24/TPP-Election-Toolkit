@@ -314,7 +314,8 @@ if uploaded_file:
             data = json.loads(raw_data)
         except json.JSONDecodeError as e:
             st.error(f"Invalid JSON file: {str(e)}")
-            return
+            st.error(f"Invalid JSON file: {str(e)}")
+            st.stop()
 
         wanted_keys = [
             "electNightSB", "electNightCC", "electNightM",
