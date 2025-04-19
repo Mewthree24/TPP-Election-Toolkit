@@ -1239,7 +1239,7 @@ if st.session_state["election_data"]:
             ws.cell(row=2, column=col, value="Margin #")
             ws.cell(row=2, column=col + 1, value="Margin %")
             ws.cell(row=2, column=col + 2, value="Total Vote")
-            ws.cellrow=2, column=col + 3, value="Rating")
+            ws.cell(row=2, column=col + 3, value="Rating")
 
             for r in range(1, 3):
                 for c in range(1, col + 4):
