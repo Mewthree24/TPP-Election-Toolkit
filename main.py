@@ -14,21 +14,24 @@ st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 # === Color Generation Functions ===
 def normalize_county_id(name, state=None):
     if state == "Alaska":
+        # Special handling for Alaska's boroughs and census areas 
         return (
             name.lower()
-            .replace(" borough", "")
             .replace(" census area", "")
-            .replace(" city and", "")
+            .replace(" city and borough", "")
+            .replace(" municipality", "")
+            .replace(" borough", "")
             .replace(" ", "_")
             .replace("-", "_")
             .replace(".", "")
             .replace("'", "")
+            .strip()
         )
     else:
         return (
             name.lower()
             .replace(" ", "_")
-            .replace("-", "_")
+            .replace("-", "_") 
             .replace(".", "")
             .replace("'", "")
             .replace("st_", "st")
@@ -61,7 +64,7 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
 
         county = str(county).strip()
         rating = str(rating).strip()
-        
+
         if not county or not rating:
             continue
 
@@ -648,7 +651,6 @@ if st.session_state["election_data"]:
                             ws.cell(row=row_idx, column=1, value="TOTALS")
                             grand_total = sum(candidate_totals.values())
                             col = 2
-
                             for _, cand_name in ordered_candidates:
                                 v = int(round(candidate_totals[cand_name]))
                                 pct = round(v / grand_total * 100, 2) if grand_total else 0
@@ -1232,7 +1234,7 @@ if st.session_state["election_data"]:
             totals= {party: 0 for party in party_order}
             grand_total = 0
 
-            district_counter = 1
+            district_counter= 1
             for entry in entries:
                 ws.cell(row=row_idx, column=1, value=district_counter)
                 district_counter += 1
