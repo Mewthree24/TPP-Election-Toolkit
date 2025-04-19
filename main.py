@@ -174,12 +174,6 @@ if st.session_state["election_data"]:
                 )
             return df
 
-        # Global margin thresholds UI
-        st.markdown("### 🎯 Margin Thresholds")
-        tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="slider_tilt")
-        lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="slider_lean")
-        likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="slider_likely")
-
         entries_to_convert = []
 
         # === U.S. House National View Spreadsheet Generator ===
@@ -396,6 +390,11 @@ if st.session_state["election_data"]:
             # === Show UI Controls Before Any Map ===
             if selected_election_type in ["President", "Senate", "Governor"] and selected_state != "None":
                 st.markdown("### 🎯 Margin Thresholds")
+                tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="slider_tilt")
+                lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="slider_lean")
+                likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="slider_likely")
+
+                st.markdown("### 🎨 Color Customizer")
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
