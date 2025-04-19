@@ -21,7 +21,20 @@ def render_svg_file(svg_path: str, title: str = None):
         if title:
             st.subheader(title)
 
-        # Let SVG control its own sizing
+        # Parse the SVG to extract its viewBox for aspect ratio
+        soup = BeautifulSoup(svg_raw, "html.parser")
+        svg_tag = soup.find("svg")
+
+        viewbox = svg_tag.get("viewBox")
+        if viewbox:
+            _, _, width, height = map(float, viewbox.strip().split())
+            ratio = height / width
+        else:
+            ratio = 0.8  # fallback ratio if viewBox missing
+
+        calculated_height = int(ratio * 1000)  # match width=1000px
+
+        # Display SVG with calculated height to avoid cutoff
         components.html(
             f"""
             <div style="display: flex; justify-content: center;">
@@ -30,7 +43,7 @@ def render_svg_file(svg_path: str, title: str = None):
                 </div>
             </div>
             """,
-            height=700,
+            height=calculated_height + 50,  # Add buffer to avoid scrollbars
             scrolling=False
         )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
