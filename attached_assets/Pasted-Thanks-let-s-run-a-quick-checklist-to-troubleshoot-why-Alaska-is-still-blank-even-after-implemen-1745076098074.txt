@@ -1,0 +1,77 @@
+Thanks — let’s run a quick checklist to troubleshoot why Alaska is still blank **even after implementing special handling**:
+
+---
+
+### ✅ **1. Confirm Borough Names in the Spreadsheet**
+From your past spreadsheet (`AK_Governor_County_Results.xlsx`), can you confirm the `County` column includes entries like:
+
+- `Anchorage Municipality`
+- `Wrangell City and Borough`
+- `Northwest Arctic Borough`
+- `Aleutians East Borough`
+
+If so, good — that’s our input source.
+
+---
+
+### ✅ **2. Confirm SVG Path IDs**
+Alaska SVG paths are typically named like:
+
+- `anchorage`
+- `wrangell`
+- `northwest_arctic`
+- `aleutians_east`
+
+So our borough normalization logic should match like this:
+
+```python
+def normalize_ak_borough_name(name: str) -> str:
+    return (
+        name.lower()
+        .replace(" census area", "")
+        .replace(" city and borough", "")
+        .replace(" municipality", "")
+        .replace(" borough", "")
+        .replace(" ", "_")
+        .strip()
+    )
+```
+
+**Examples:**
+
+- `"Anchorage Municipality"` → `anchorage`
+- `"Wrangell City and Borough"` → `wrangell`
+- `"Northwest Arctic Borough"` → `northwest_arctic`
+
+---
+
+### ✅ **3. SVG Matching Code**
+Ensure this is active **only for Alaska**:
+
+```python
+if selected_state.lower() == "alaska":
+    county_id = normalize_ak_borough_name(county_name)
+else:
+    county_id = county_name.lower().replace(" ", "_").replace("county", "").strip()
+```
+
+Then build the `color_map` as:
+
+```python
+color_map[county_id] = assigned_color
+```
+
+---
+
+### ✅ **4. Diagnostic Print (Optional)**
+Temporarily output the county IDs you’re trying to color:
+
+```python
+st.write("Alaska color map keys:", list(color_map.keys())[:10])
+```
+
+If you see nothing or mismatches like `"wrangell_city_and"` or `"wrangell_city_and_borough"` — it's likely an incomplete strip in the normalization.
+
+---
+
+Would you like me to now generate a cleaned, updated patch you can drop into your `main.py` that handles this borough logic correctly and logs debug output?
