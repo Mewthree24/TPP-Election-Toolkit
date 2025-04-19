@@ -1284,8 +1284,13 @@ if st.session_state["election_data"]:
                 df_display = pd.DataFrame(data_rows, columns=header_row)
                 # Convert all numeric-like strings to numeric values
                 df_display = df_display.apply(pd.to_numeric, errors='ignore')
-                # Apply custom ratings based on thresholds
-                df_display = update_df_with_custom_ratings(df_display, tilt_max, lean_max, likely_max)
+                # Apply custom ratings based on session state thresholds
+                df_display = update_df_with_custom_ratings(
+                    df_display,
+                    st.session_state["tilt_max"],
+                    st.session_state["lean_max"],
+                    st.session_state["likely_max"]
+                )
                 st.dataframe(df_display, use_container_width=True)
 
             # Download button
