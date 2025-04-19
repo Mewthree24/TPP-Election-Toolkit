@@ -1310,7 +1310,7 @@ if st.session_state["election_data"]:
                             header_row.append(label)
 
                     data_rows = excel_rows[2:]
-                    df_display = pd.DataFrame(data_rows, columns=headerrow)
+                    df_display = pd.DataFrame(data_rows, columns=header_row)
                     # Convert all numeric-like strings to numeric values
                     df_display = df_display.apply(pd.to_numeric, errors='ignore')
 
