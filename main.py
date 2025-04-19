@@ -234,7 +234,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
                     </div>
                 </div>
                 """,
-                height = 600 if "ak" not in svg_path.lower() else 400  # Alaska is wide, needs less height
+                height=600 if "ak" not in svg_path.lower() else 400,  # Alaska is wide, needs less height
                 scrolling=False
             )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
