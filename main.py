@@ -218,16 +218,16 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
 
         # === Force proper aspect ratio rendering (like image) and add message handler ===
         # Fix aspect ratio by injecting correct SVG attributes
-            svg_display = re.sub(
-                r'<svg([^>]*)>',
-                r'<svg\1 preserveAspectRatio="xMidYMid meet">',
-                svg_data
-            )
+        svg_display = re.sub(
+            r'<svg([^>]*)>',
+            r'<svg\1 preserveAspectRatio="xMidYMid meet">',
+            svg_data
+        )
 
-            # Create base64 of modified SVG
-            encoded = base64.b64encode(svg_display.encode()).decode()
+        # Create base64 of modified SVG
+        encoded = base64.b64encode(svg_display.encode()).decode()
 
-            components.html(
+        components.html(
             f"""
             <script>
             window.addEventListener('message', function(e) {{
