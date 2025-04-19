@@ -93,6 +93,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         # Apply coloring if we have display data and color schemes
         if df_display is not None and dem_colors and rep_colors and ind_colors:
             color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
+            st.write("Color Map (first 5 entries):", dict(list(color_map.items())[:5]))
             svg_data = apply_county_colors_to_svg(svg_data, color_map)
 
         encoded = base64.b64encode(svg_data.encode()).decode()
