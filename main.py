@@ -203,7 +203,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
                     state_code = match.group(2)
                     state_name = state_code_to_name.get(state_code.upper(), "")
                     if state_name:
-                        onclick = f'onclick="window.parent.postMessage({{type:\'selectState\', state:\'{state_name}\'}}, \'*\')"'
+                        onclick = f'onclick="localStorage.setItem(\'clicked_state\', \'{state_name}\'); location.reload()"'
                         if 'style="' in tag:
                             tag = tag.replace('style="', f'{onclick} style="cursor: pointer; ')
                         else:
@@ -335,18 +335,17 @@ if uploaded_file:
     except Exception as e:
         st.error(f"Failed to load file: {e}")
 
-# Check for clicked state from JavaScript
+# Check for clicked state from localStorage
 clicked_state = st_javascript("""
-    window.clicked_state = null;
-    window.addEventListener('message', function(e) {
-        if (e.data.type === 'selectState') {
-            localStorage.setItem('clicked_state', e.data.state);
-        }
-    });
-    return localStorage.getItem('clicked_state');
+    const stored = localStorage.getItem("clicked_state");
+    if (stored) {
+        localStorage.removeItem("clicked_state");
+        return stored;
+    }
+    return null;
 """)
 
-if clicked_state:
+if clicked_state and clicked_state in state_code_to_name.values():
     st.session_state["selected_state"] = clicked_state
     st.experimental_rerun()
 
