@@ -22,8 +22,8 @@ def render_svg_file(svg_path: str, title: str = None):
         if title:
             st.subheader(title)
 
-        # Parse SVG to extract viewBox
-        soup = BeautifulSoup(svg_raw, "html.parser")
+        # Parse SVG with XML parser
+        soup = BeautifulSoup(svg_raw, "xml")
         svg_tag = soup.find("svg")
 
         viewbox = svg_tag.get("viewBox")
