@@ -1,0 +1,84 @@
+Thanks for sharing the full code — it helps isolate the final problem.
+
+---
+
+### 🎯 The Issue:
+You're injecting an **inline `<svg>` tag** into a `<div>`, but the outermost `div` is using `padding-top` (for aspect ratio), which **doesn’t work** when the child is **raw SVG markup** (not an image or `iframe`). So the browser renders `height=50`, but the SVG has no visible area — hence **nothing appears.**
+
+---
+
+### ✅ The Simplest Reliable Fix: Let SVG Scale Itself via Width, and Set Height Dynamically in Python
+
+Update `render_svg_file()` like this:
+
+```python
+def render_svg_file(svg_path: str, title: str = None):
+    import streamlit.components.v1 as components
+    from bs4 import BeautifulSoup
+    import os
+
+    try:
+        with open(svg_path, "r", encoding="utf-8") as f:
+            svg_raw = f.read()
+
+        if title:
+            st.subheader(title)
+
+        # Parse SVG with XML parser to extract viewBox
+        soup = BeautifulSoup(svg_raw, "xml")
+        svg_tag = soup.find("svg")
+
+        viewbox = svg_tag.get("viewBox")
+        if viewbox:
+            _, _, width, height = map(float, viewbox.strip().split())
+            ratio = height / width
+        else:
+            ratio = 0.75  # Fallback ratio
+
+        # Calculate height based on a 1000px wide frame
+        pixel_width = 1000
+        pixel_height = int(ratio * pixel_width)
+
+        # Inject SVG in a responsive container
+        components.html(
+            f"""
+            <div style="display: flex; justify-content: center;">
+                <div style="width: 100%; max-width: {pixel_width}px;">
+                    {svg_raw}
+                </div>
+            </div>
+            """,
+            height=pixel_height + 40,  # + buffer for label or browser quirk
+            scrolling=False
+        )
+
+        st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
+
+    except Exception as e:
+        st.error(f"⚠️ Failed to render SVG: {e}")
+```
+
+---
+
+### ✅ Why This Works:
+
+- SVG scales to full container width
+- Streamlit gets a consistent height it can allocate
+- You get pixel-perfect sizing **with no cut-off or hidden rendering**
+- Responsive width **still applies**, but height is **manually controlled**
+
+---
+
+### 🧪 Quick Test Suggestion
+
+Try adding this temporary debug below the map:
+
+```python
+st.text(f"Using height: {pixel_height + 40}px with ratio: {round(ratio, 2)}")
+```
+
+That confirms the height passed to Streamlit matches expectations.
+
+---
+
+Let me know once you confirm this finally shows the full map across screen sizes — and we’ll move to **margin-based coloring** next!
