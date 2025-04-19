@@ -178,6 +178,11 @@ if st.session_state["election_data"]:
 
         # === U.S. House National View Spreadsheet Generator ===
         if selected_election_type == "U.S. House":
+            # Margin thresholds for House
+            tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="house_tilt")
+            lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="house_lean")
+            likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="house_likely")
+
             from collections import defaultdict
             wb = Workbook()
             ws = wb.active
@@ -1076,6 +1081,11 @@ if st.session_state["election_data"]:
 
         # === State Legislature National View Spreadsheet Generator ===
         elif selected_election_type in ["State House", "State Senate"]:
+            # Margin thresholds for state legislature 
+            tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="legislature_tilt")
+            lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="legislature_lean") 
+            likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="legislature_likely")
+
             from collections import defaultdict
             data_key = "electNightStH" if selected_election_type == "State House" else "electNightStS"
             wb = Workbook()
