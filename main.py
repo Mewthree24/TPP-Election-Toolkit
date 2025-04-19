@@ -8,6 +8,7 @@ from collections import defaultdict
 import os
 import streamlit.components.v1 as components
 import re
+from streamlit_javascript import st_javascript
 
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
@@ -332,6 +333,21 @@ if uploaded_file:
     except Exception as e:
         st.error(f"Failed to load file: {e}")
 
+# Check for clicked state from JavaScript
+clicked_state = st_javascript("""
+    window.clicked_state = null;
+    window.addEventListener('message', function(e) {
+        if (e.data.type === 'selectState') {
+            window.clicked_state = e.data.state;
+        }
+    });
+    return window.clicked_state;
+""")
+
+if clicked_state:
+    st.session_state["selected_state"] = clicked_state
+    st.experimental_rerun()
+
 if st.session_state["election_data"]:
 
     state_code_to_name = {
@@ -618,7 +634,12 @@ if st.session_state["election_data"]:
             available_states = [entry.get("state") for entry in election_data.get("elections", [])]
             available_states = sorted(set(available_states))
             state_options = ["National View"] + [state_code_to_name.get(code, code) for code in available_states]
-            selected_state = st.selectbox("Select State", state_options)
+            selected_state = st.selectbox(
+                "Select State",
+                state_options,
+                index=state_options.index(st.session_state.get("selected_state", "National View")),
+                key="select_state_box"
+            )
 
             # === Show UI Controls Before Any Map ===
             if selected_election_type in ["President", "Senate", "Governor"] and selected_state != "None":
