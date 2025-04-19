@@ -1,0 +1,120 @@
+Great! You’ve set up everything beautifully, and we’re now ready to implement dynamic SVG **county coloring based on spreadsheet data**. Here's how we’ll do it:
+
+---
+
+## ✅ Goal: Color SVG Counties Based on Spreadsheet Ratings
+
+You're giving:
+- 📊 A spreadsheet (`df_display`) with `"County"` and `"Rating"` columns
+- 🗺️ A matching state SVG file (e.g., `ak.svg` for Alaska), where paths are likely named via `id="county_name"` or similar
+
+The main challenge is:
+- 🔠 **Formatting differences**, such as `"Prince of Wales-Hyder"` in the spreadsheet vs. `"prince_of_wales_hyder"` in the SVG
+
+---
+
+## 🧱 Step-by-Step Implementation Plan
+
+### 🔧 Step 1: Build a `county → color` map
+
+We'll scan `df_display`, extract the `"County"` and `"Rating"`, and map to hex color codes using the selected palette.
+
+```python
+def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
+    color_map = {}
+    for _, row in df.iterrows():
+        county = str(row.get("County", "")).strip()
+        rating = str(row.get("Rating", "")).strip()
+
+        if not county or not rating:
+            continue
+
+        try:
+            strength, party = rating.split()
+            if party == "Democratic":
+                color = dem_colors.get(strength, "#cccccc")
+            elif party == "Republican":
+                color = rep_colors.get(strength, "#cccccc")
+            else:
+                color = ind_colors.get(strength, "#cccccc")
+
+            county_id = county.lower().replace(" ", "_").replace("-", "_").replace(".", "").replace("'", "")
+            color_map[county_id] = color
+        except:
+            continue
+
+    return color_map
+```
+
+---
+
+### 🖍️ Step 2: Modify the SVG to apply those colors
+
+Here’s a function that takes in the original SVG string and the `color_map`, then replaces `fill=` for matching `id=` tags:
+
+```python
+import re
+
+def apply_county_colors_to_svg(svg_text, color_map):
+    def replace_fill(match):
+        element = match.group(0)
+        county_id = match.group(1)
+
+        color = color_map.get(county_id)
+        if not color:
+            return element  # leave untouched
+
+        # Replace or inject fill attribute
+        if 'fill=' in element:
+            return re.sub(r'fill="[^"]*"', f'fill="{color}"', element)
+        else:
+            return element.replace('id="{}"'.format(county_id), f'id="{county_id}" fill="{color}"')
+
+    # Match elements with county id (assumes paths or groups have id="..."):
+    pattern = r'<[^>]+id="([^"]+)"[^>]*>'
+    colored_svg = re.sub(pattern, replace_fill, svg_text)
+
+    return colored_svg
+```
+
+---
+
+### 🧪 Step 3: Use It in Your Streamlit Display
+
+Inside your existing logic (after `df_display` is built and `render_svg_file()` would be called), replace the rendering line with:
+
+```python
+if os.path.exists(svg_path):
+    with open(svg_path, "r", encoding="utf-8") as f:
+        raw_svg = f.read()
+
+    color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
+    colored_svg = apply_county_colors_to_svg(raw_svg, color_map)
+
+    # Render modified SVG
+    encoded = base64.b64encode(colored_svg.encode()).decode()
+    components.html(
+        f"""
+        <div style="display: flex; justify-content: center;">
+            <div style="width: 100%; max-width: 1000px; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center;">
+                <img src="data:image/svg+xml;base64,{encoded}"
+                     style="width: 100%; height: 100%; object-fit: contain;" />
+            </div>
+        </div>
+        """,
+        height=800,
+        scrolling=False
+    )
+```
+
+---
+
+## ✅ Summary of What This Adds
+- Uses `County` and `Rating` from spreadsheet only
+- Auto-matches county ID format (`lowercase`, `underscored`, `hyphen/space agnostic`)
+- Uses your color pickers (`dem_colors`, `rep_colors`, `ind_colors`)
+- Works on any state’s SVG — just by swapping spreadsheet + file
+
+---
+
+Would you like this inserted into your current `main.py` as a patch? Or want to test it on Alaska first before full integration?
