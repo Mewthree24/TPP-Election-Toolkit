@@ -146,6 +146,40 @@ if st.session_state["election_data"]:
         election_key = election_types[selected_election_type]
         election_data = st.session_state["election_data"][election_key]
 
+        def assign_rating(margin, winner, tilt_max, lean_max, likely_max):
+            if margin <= tilt_max:
+                level = "Tilt"
+            elif margin <= lean_max:
+                level = "Lean"
+            elif margin <= likely_max:
+                level = "Likely"
+            else:
+                level = "Safe"
+            return f"{level} {winner}"
+
+        def update_df_with_custom_ratings(df, tilt_max, lean_max, likely_max):
+            df = df.copy()
+            if "Rating" in df.columns and "Margin %" in df.columns:
+                df["Rating"] = df.apply(
+                    lambda row: assign_rating(
+                        abs(float(str(row["Margin %"]).strip("%"))),
+                        row["Rating"].split()[-1] if isinstance(row["Rating"], str) else "",
+                        tilt_max,
+                        lean_max,
+                        likely_max
+                    )
+                    if pd.notna(row.get("Rating")) and "%" in str(row["Margin %"])
+                    else row.get("Rating", ""),
+                    axis=1
+                )
+            return df
+
+        # Global margin thresholds UI
+        st.markdown("### 🎯 Margin Thresholds")
+        tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="slider_tilt")
+        lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="slider_lean")
+        likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="slider_likely")
+
         entries_to_convert = []
 
         # === U.S. House National View Spreadsheet Generator ===
@@ -362,11 +396,6 @@ if st.session_state["election_data"]:
             # === Show UI Controls Before Any Map ===
             if selected_election_type in ["President", "Senate", "Governor"] and selected_state != "None":
                 st.markdown("### 🎯 Margin Thresholds")
-                tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="slider_tilt")
-                lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="slider_lean")
-                likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="slider_likely")
-
-                st.markdown("### 🎨 Color Settings")
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
@@ -800,7 +829,7 @@ if st.session_state["election_data"]:
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         key="president_national_view"
                     )
-                    
+
                     # === Presidential National View Map ===
                     pres_path = os.path.join("SVG", "presidential.svg")
                     if os.path.exists(pres_path):
@@ -1005,11 +1034,6 @@ if st.session_state["election_data"]:
 
                     if selected_election_type in ["President", "Senate", "Governor"] and selected_state != "None":
                         st.markdown("### 🎯 Margin Thresholds")
-                        tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="slider_tilt")
-                        lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="slider_lean")
-                        likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="slider_likely")
-
-                        st.markdown("### 🎨 Color Settings")
                         col1, col2, col3 = st.columns(3)
 
                         with col1:
@@ -1242,6 +1266,8 @@ if st.session_state["election_data"]:
                 df_display = pd.DataFrame(data_rows, columns=header_row)
                 # Convert all numeric-like strings to numeric values
                 df_display = df_display.apply(pd.to_numeric, errors='ignore')
+                # Apply custom ratings based on thresholds
+                df_display = update_df_with_custom_ratings(df_display, tilt_max, lean_max, likely_max)
                 st.dataframe(df_display, use_container_width=True)
 
             # Download button
