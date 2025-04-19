@@ -687,7 +687,7 @@ if st.session_state["election_data"]:
                     "Democratic": {"label": "Dem", "colors": {}},
                     "Republican": {"label": "Rep", "colors": {}},
                     "Independent": {"label": "Ind", "colors": {}}
-                }}
+                }
 
                 with col1:
                     st.markdown("**Democratic Shades**")
