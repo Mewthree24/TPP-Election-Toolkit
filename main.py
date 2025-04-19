@@ -11,6 +11,56 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
 def display_national_map(election_type: str):
+
+
+# === Color Generation Functions ===
+def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
+    color_map = {}
+    for _, row in df.iterrows():
+        county = str(row.get("County", "")).strip()
+        rating = str(row.get("Rating", "")).strip()
+
+        if not county or not rating:
+            continue
+
+        try:
+            strength, party = rating.split()
+            if party == "Democratic":
+                color = dem_colors.get(strength, "#cccccc")
+            elif party == "Republican":
+                color = rep_colors.get(strength, "#cccccc")
+            else:
+                color = ind_colors.get(strength, "#cccccc")
+
+            county_id = county.lower().replace(" ", "_").replace("-", "_").replace(".", "").replace("'", "")
+            color_map[county_id] = color
+        except:
+            continue
+
+    return color_map
+
+def apply_county_colors_to_svg(svg_text, color_map):
+    def replace_fill(match):
+        element = match.group(0)
+        county_id = match.group(1)
+
+        color = color_map.get(county_id)
+        if not color:
+            return element  # leave untouched
+
+        # Replace or inject fill attribute
+        if 'fill=' in element:
+            return re.sub(r'fill="[^"]*"', f'fill="{color}"', element)
+        else:
+            return element.replace('id="{}"'.format(county_id), f'id="{county_id}" fill="{color}"')
+
+    # Match elements with county id (assumes paths or groups have id="..."):
+    pattern = r'<[^>]+id="([^"]+)"[^>]*>'
+    colored_svg = re.sub(pattern, replace_fill, svg_text)
+
+    return colored_svg
+
+
     """Helper function to display national maps for President/Senate/Governor"""
     map_file = {
         "President": "presidential.svg",
@@ -25,7 +75,7 @@ def display_national_map(election_type: str):
         else:
             st.warning(f"No national map found for {election_type}")
 
-def render_svg_file(svg_path: str, title: str = None):
+def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_colors=None, rep_colors=None, ind_colors=None):
     import streamlit.components.v1 as components
     import base64
     import os
@@ -36,6 +86,11 @@ def render_svg_file(svg_path: str, title: str = None):
 
         if title:
             st.subheader(title)
+
+        # Apply coloring if we have display data and color schemes
+        if df_display is not None and dem_colors and rep_colors and ind_colors:
+            color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
+            svg_data = apply_county_colors_to_svg(svg_data, color_map)
 
         encoded = base64.b64encode(svg_data.encode()).decode()
 
