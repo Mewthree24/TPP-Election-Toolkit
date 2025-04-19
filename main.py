@@ -202,16 +202,22 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         encoded = base64.b64encode(svg_data.encode()).decode()
 
         # === Force proper aspect ratio rendering (like image) and add message handler ===
-        # Fix aspect ratio by injecting correct SVG attributes
+        # Improve SVG view rendering - only inject viewBox if not already present
+        if 'viewBox=' not in svg_data:
+            if "presidential" in svg_path or "states" in svg_path:
+                svg_display = re.sub(r'<svg', '<svg viewBox="0 0 1000 600"', svg_data)
+            else:
+                # Let state SVGs use their own viewBox if defined internally
+                svg_display = re.sub(r'<svg([^>]*)>', r'<svg\1>', svg_data)
+        else:
+            svg_display = svg_data
+
+        # Always apply preserveAspectRatio for consistent rendering
         svg_display = re.sub(
             r'<svg([^>]*)>',
             r'<svg\1 preserveAspectRatio="xMidYMid meet">',
-            svg_data
+            svg_display
         )
-
-        # Inject viewBox if not present and ensure preserveAspectRatio is set
-        if not re.search(r'viewBox=', svg_display):
-            svg_display = re.sub(r'<svg', '<svg viewBox="0 0 1000 600"', svg_display)
 
         # Create base64 of modified SVG
         encoded = base64.b64encode(svg_display.encode()).decode()
