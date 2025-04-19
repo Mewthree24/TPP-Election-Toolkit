@@ -202,20 +202,23 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         encoded = base64.b64encode(svg_data.encode()).decode()
 
         # === Force proper aspect ratio rendering (like image) and add message handler ===
-        # Improve SVG view rendering - only inject viewBox if not already present
+        # Only inject viewBox for national maps if not present
         if 'viewBox=' not in svg_data:
             if "presidential" in svg_path or "states" in svg_path:
                 svg_display = re.sub(r'<svg', '<svg viewBox="0 0 1000 600"', svg_data)
             else:
-                # Let state SVGs use their own viewBox if defined internally
-                svg_display = re.sub(r'<svg([^>]*)>', r'<svg\1>', svg_data)
+                svg_display = svg_data  # Keep original SVG data for state maps
         else:
             svg_display = svg_data
 
-        # Always apply preserveAspectRatio for consistent rendering
+        # Ensure preserveAspectRatio is applied correctly
         svg_display = re.sub(
             r'<svg([^>]*)>',
-            r'<svg\1 preserveAspectRatio="xMidYMid meet">',
+            lambda m: (
+                '<svg' +
+                m.group(1).replace('preserveAspectRatio="none"', '') +
+                ' preserveAspectRatio="xMidYMid meet">'
+            ),
             svg_display
         )
 
