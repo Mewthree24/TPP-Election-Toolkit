@@ -36,14 +36,14 @@ def render_svg_file(svg_path: str, title: str = None):
                 <div style="width: 100%;">
                     <div style="background-color: black; padding: 5px;">
                         <svg width="{width}" height="{height}" viewBox="{viewbox}" 
-                             style="width: 100%; height: 100vh;" preserveAspectRatio="xMidYMid contain">
+                             style="width: 100%; height: auto;" preserveAspectRatio="xMidYMid meet">
                             {svg_inner}
                         </svg>
                     </div>
                 </div>
             </div>
             """,
-            height=500,
+            height=800,
             scrolling=False
         )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
