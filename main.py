@@ -41,9 +41,6 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
             color_map[county_id] = color
 
     return color_map
-
-        try:
-            strength, party = rating.split()
             if party == "Democratic":
                 color = dem_colors.get(strength, "#cccccc")
             elif party == "Republican":
