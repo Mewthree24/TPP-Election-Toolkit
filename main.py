@@ -217,7 +217,17 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         encoded = base64.b64encode(svg_data.encode()).decode()
 
         # === Force proper aspect ratio rendering (like image) and add message handler ===
-        components.html(
+        # Fix aspect ratio by injecting correct SVG attributes
+            svg_display = re.sub(
+                r'<svg([^>]*)>',
+                r'<svg\1 preserveAspectRatio="xMidYMid meet">',
+                svg_data
+            )
+
+            # Create base64 of modified SVG
+            encoded = base64.b64encode(svg_display.encode()).decode()
+
+            components.html(
             f"""
             <script>
             window.addEventListener('message', function(e) {{
@@ -230,23 +240,16 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
                 }}
             }});
             </script>
-            <div style="display: flex; justify-content: center;">
-                <div style="
-                    width: 100%;
-                    max-width: 1000px;
-                    aspect-ratio: 4 / 3;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background: none;">
+            <div style="width: 100%; height: auto; display: flex; justify-content: center;">
+                <div style="width: 100%; max-width: 1000px; height: auto;">
                     <object data="data:image/svg+xml;base64,{encoded}"
                             type="image/svg+xml"
-                            style="width: 100%; height: 100%; object-fit: contain;">
+                            style="width: 100%; height: auto; display: block;">
                     </object>
                 </div>
             </div>
             """,
-            height=800,
+            height=700,
             scrolling=False
         )
 
