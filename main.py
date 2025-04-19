@@ -26,12 +26,13 @@ def render_svg_file(svg_path: str, title: str = None):
         components.html(
             f"""
             <div style="display: flex; justify-content: center;">
-                <object type="image/svg+xml" data="data:image/svg+xml;base64,{svg_base64}"
-                        style="max-width: 1000px; width: 100%; height: 700px; object-fit: contain;">
+                <object type="image/svg+xml"
+                        data="data:image/svg+xml;base64,{svg_base64}"
+                        style="max-width: 100%; width: 100%; height: auto;">
                 </object>
             </div>
             """,
-            height=720,
+            height=0,
             scrolling=False
         )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
