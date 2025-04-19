@@ -682,7 +682,7 @@ if st.session_state["election_data"]:
 
                 # Shared color levels for all parties
                 color_levels = ["Tilt", "Lean", "Likely", "Safe"]
-                color_mapping = {
+                colormapping = {
                     "Democratic": {"label": "Dem", "colors": {}},
                     "Republican": {"label": "Rep", "colors": {}},
                     "Independent": {"label": "Ind", "colors": {}}
@@ -1304,18 +1304,19 @@ if st.session_state["election_data"]:
 
                             if label in used_names:
                                 count = used_names[label] + 1
-                                    used_names[label] = count
-                                    label = f"{label} ({count})"
-                                else:
-                                    used_names[label] = 1
+                                used_names[label] = count
+                                label = f"{label} ({count})"
+                            else:
+                                used_names[label] = 1
 
-                                header_row.append(label)
+                            header_row.append(label)
 
                     data_rows = excel_rows[2:]
                     df_display = pd.DataFrame(data_rows, columns=header_row)
                     # Convert all numeric-like strings to numeric values
                     df_display = df_display.apply(pd.to_numeric, errors='ignore')
 
+                    st.subheader(f"🧾 {selected_election_type} National View")
                     st.dataframe(df_display, use_container_width=True)
 
                     st.download_button(
