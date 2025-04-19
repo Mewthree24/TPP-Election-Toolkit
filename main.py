@@ -335,6 +335,43 @@ if st.session_state["election_data"]:
             state_options = ["National View"] + [state_code_to_name.get(code, code) for code in available_states]
             selected_state = st.selectbox("Select State", state_options)
 
+            # === Map Customization Controls ===
+            if selected_election_type in ["President", "Senate", "Governor"]:
+                st.markdown("### 🎯 Margin Thresholds")
+                tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3)
+                lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7)
+                likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12)
+
+                st.markdown("### 🎨 Color Settings")
+                col1, col2, col3 = st.columns(3)
+
+                with col1:
+                    st.markdown("**Democratic Shades**")
+                    dem_colors = {
+                        "Tilt": st.color_picker("Tilt Dem", "#99ccff", key="tilt_dem"),
+                        "Lean": st.color_picker("Lean Dem", "#6699ff", key="lean_dem"),
+                        "Likely": st.color_picker("Likely Dem", "#3366cc", key="likely_dem"),
+                        "Safe": st.color_picker("Safe Dem", "#003399", key="safe_dem")
+                    }
+
+                with col2:
+                    st.markdown("**Republican Shades**")
+                    rep_colors = {
+                        "Tilt": st.color_picker("Tilt Rep", "#ff9999", key="tilt_rep"),
+                        "Lean": st.color_picker("Lean Rep", "#ff6666", key="lean_rep"),
+                        "Likely": st.color_picker("Likely Rep", "#cc3333", key="likely_rep"),
+                        "Safe": st.color_picker("Safe Rep", "#990000", key="safe_rep")
+                    }
+
+                with col3:
+                    st.markdown("**Independent Shades**")
+                    ind_colors = {
+                        "Tilt": st.color_picker("Tilt Ind", "#cccc99", key="tilt_ind"),
+                        "Lean": st.color_picker("Lean Ind", "#999966", key="lean_ind"),
+                        "Likely": st.color_picker("Likely Ind", "#666633", key="likely_ind"),
+                        "Safe": st.color_picker("Safe Ind", "#333300", key="safe_ind")
+                    }
+
             if selected_state != "National View":
                 state_code = next((code for code, name in state_code_to_name.items() if name == selected_state), None)
                 if state_code:
