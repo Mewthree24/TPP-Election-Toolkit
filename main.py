@@ -12,18 +12,30 @@ import re
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
 # === Color Generation Functions ===
-def normalize_county_id(name):
-    return (
-        name.lower()
-        .replace(" ", "_")
-        .replace("-", "_")
-        .replace(".", "")
-        .replace("'", "")
-        .replace("st_", "st")
-        .replace("ste_", "ste")
-        .removesuffix("_county")
-        + "_county"
-    )
+def normalize_county_id(name, state=None):
+    if state == "Alaska":
+        return (
+            name.lower()
+            .replace(" borough", "")
+            .replace(" census area", "")
+            .replace(" city and", "")
+            .replace(" ", "_")
+            .replace("-", "_")
+            .replace(".", "")
+            .replace("'", "")
+        )
+    else:
+        return (
+            name.lower()
+            .replace(" ", "_")
+            .replace("-", "_")
+            .replace(".", "")
+            .replace("'", "")
+            .replace("st_", "st")
+            .replace("ste_", "ste")
+            .removesuffix("_county")
+            + "_county"
+        )
 
 def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
     color_map = {}
@@ -54,7 +66,7 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
             continue
 
         # Properly normalize county ID
-        county_id = normalize_county_id(county)
+        county_id = normalize_county_id(county, state_code)
         color = rating_to_color.get(rating, "#cccccc")
         color_map[county_id] = color
 
@@ -67,7 +79,7 @@ def apply_county_colors_to_svg(svg_text, color_map):
         tag_id = match.group(2)
 
         # Normalize SVG ID to match the spreadsheet logic
-        normalized_id = normalize_county_id(tag_id)
+        normalized_id = normalize_county_id(tag_id, "Alaska" if state_code == "AK" else None)
         color = color_map.get(normalized_id)
 
         if color:
