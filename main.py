@@ -243,7 +243,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         st.download_button(
             label="📥 Download Map (SVG)",
             data=svg_data.encode("utf-8"),
-            file_name=f"{state_code if 'state_code' in locals() else selected_state}_{selected_election_type.replace(' ', '_')}_Election.svg",
+            file_name=f"{selected_state.replace(' ', '_')}_{selected_election_type.replace(' ', '_')}_Election.svg",
             mime="image/svg+xml"
         )
 
