@@ -1,0 +1,66 @@
+Awesome. Here's exactly how to add **county-level SVG display logic** tied to your spreadsheet output.
+
+---
+
+### ✅ 1. Add This After County-Level Spreadsheet Display
+
+Inside the `elif selected_state != "National View"` block (the one that builds the county spreadsheet for a single state), go to the end — **after** the Excel preview and download button.
+
+Then paste this 👇:
+
+```python
+# === AUTO SVG PREVIEW: Show County-Level Map ===
+import streamlit.components.v1 as components
+
+svg_filename = f"{state_code.lower()}.svg"
+svg_path = os.path.join("SVG", svg_filename)
+
+if os.path.exists(svg_path):
+    try:
+        with open(svg_path, "r", encoding="utf-8") as f:
+            svg_raw = f.read()
+
+        # Embed clean SVG scaling
+        components.html(
+            f"""
+            <div style="display: flex; justify-content: center;">
+                <div style="width: 100%; max-width: 1000px;">
+                    <div style="background-color: black; padding: 10px;">
+                        <svg style="width: 100%; height: auto;" preserveAspectRatio="xMidYMid meet">
+                            {svg_raw.split("<svg", 1)[-1].split(">", 1)[-1].rsplit("</svg>", 1)[0]}
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            """,
+            height=700,
+            scrolling=False
+        )
+        st.success(f"🗺️ Displaying map for {state_code}")
+    except Exception as e:
+        st.error(f"⚠️ Failed to load SVG for {state_code}: {e}")
+else:
+    st.warning(f"❌ No county-level map found for {state_code}")
+```
+
+---
+
+### 💡 What This Does
+
+- Matches `state_code` (like `WI`) to the SVG filename (`wi.svg`)
+- Loads and renders that `.svg` cleanly with full scaling
+- Shows success/failure messages
+
+---
+
+### 🧪 Test Case
+Try this by selecting:
+- **Election Type**: President  
+- **State**: Wisconsin  
+If all’s working, you'll get:
+- The full county spreadsheet
+- The `wi.svg` map shown directly below it
+
+---
+
+Let me know once that's working — and next, we can hook it up to your **margin-based coloring system** to bring the map to life 🌈

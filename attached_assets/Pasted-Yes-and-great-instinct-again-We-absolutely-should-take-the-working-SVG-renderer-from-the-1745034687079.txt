@@ -1,0 +1,86 @@
+Yes — and great instinct again.
+
+We *absolutely should* take the **working SVG renderer** from the test (`SVG Viewer Test`) and make that our **universal renderer** going forward. That means:
+
+- Keep the clean scaling (`width: 100%`, `height: auto`)
+- Strip the `<svg>` wrapper correctly
+- Preserve the black background for visibility
+- Allow flexible viewBox support later (if needed)
+
+---
+
+### ✅ Recommended Move
+
+Instead of repeating this SVG rendering logic in multiple places, let’s turn it into a reusable helper function in `main.py`:
+
+---
+
+### 📦 Step 1: Add This Function Near the Top of `main.py`
+
+```python
+def render_svg_file(svg_path: str, title: str = None):
+    import streamlit.components.v1 as components
+
+    try:
+        with open(svg_path, "r", encoding="utf-8") as f:
+            svg_raw = f.read()
+
+        svg_inner = svg_raw.split("<svg", 1)[-1].split(">", 1)[-1].rsplit("</svg>", 1)[0]
+
+        if title:
+            st.subheader(title)
+
+        components.html(
+            f"""
+            <div style="display: flex; justify-content: center;">
+                <div style="width: 100%; max-width: 1000px;">
+                    <div style="background-color: black; padding: 10px;">
+                        <svg style="width: 100%; height: auto;" preserveAspectRatio="xMidYMid meet">
+                            {svg_inner}
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            """,
+            height=700,
+            scrolling=False
+        )
+        st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
+
+    except Exception as e:
+        st.error(f"⚠️ Failed to render SVG: {e}")
+```
+
+---
+
+### 📦 Step 2: Update the County-Level Display Block
+
+Replace this:
+```python
+# === AUTO SVG PREVIEW: Show County-Level Map ===
+...
+```
+
+With:
+```python
+# === AUTO SVG PREVIEW: Show County-Level Map ===
+svg_filename = f"{state_code.lower()}.svg"
+svg_path = os.path.join("SVG", svg_filename)
+
+if os.path.exists(svg_path):
+    render_svg_file(svg_path, title="🗺️ County-Level Map")
+else:
+    st.warning(f"❌ No county-level map found for {state_code}")
+```
+
+---
+
+### 💡 Benefits
+
+- One clean SVG rendering method for all future use
+- Easy to reuse later for national maps (`presidential.svg`, `states.svg`)
+- Central point to add enhancements (e.g., toggle background color, adjust height)
+
+---
+
+Ready to test it? Once you confirm it works, we’ll bring in **margin-based coloring** next.
