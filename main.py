@@ -642,7 +642,7 @@ if st.session_state["election_data"]:
 
                         # === Data Rows ===
                         row_idx = 3
-                        total_votes = {p: 0 forp in candidate_parties}
+                        total_votes = {p: 0 for p in candidate_parties}
                         electoral_totals = {p: 0 for p in candidate_parties}
 
                         all_states = {e["state"]: e for e in entries_to_convert}
