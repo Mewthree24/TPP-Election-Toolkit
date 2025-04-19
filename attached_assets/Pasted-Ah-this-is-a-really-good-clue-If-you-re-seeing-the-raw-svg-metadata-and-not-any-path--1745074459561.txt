@@ -1,0 +1,83 @@
+Ah — this is a really good clue. If you're seeing the raw `<svg ...>` metadata and not any `<path>` or `<g>` tags **with `id="..."`**, that tells us the following:
+
+---
+
+### 🧠 Most Likely Issue
+
+You're modifying or inspecting the **start of the SVG**, but not the actual **map paths** where the county elements live.
+
+The part of your debug output:
+```xml
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   ...
+   width="810"
+   height="810"
+```
+
+... is just the SVG metadata.
+
+That doesn't tell us if your county `<path>` or `<g>` tags are being matched or colored.
+
+---
+
+### ✅ Double Check the Regex Is Matching the Paths
+
+In your function `apply_county_colors_to_svg()`, you're using this pattern:
+
+```python
+re.sub(r'<[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
+```
+
+That will only work for **SVG tags like `<path id="...">`** or `<g id="...">`.
+
+If your SVG puts `id="..."` **on `<title>` or inside nested tags**, the regex might miss it.
+
+---
+
+### 🔧 Stronger Fix: Target `id="..."` and inject `style="fill:..."`
+
+Try this improved `replace_fill()` approach that doesn't depend on tag formatting and instead injects `style="fill:..."` safely:
+
+```python
+def apply_county_colors_to_svg(svg_text, color_map):
+    def replace_fill(match):
+        county_id = match.group(1).lower()
+        color = color_map.get(county_id)
+        if color:
+            st.write(f"Coloring {county_id} → {color}")
+            tag = match.group(0)
+            # Insert style before closing '>'
+            if 'style=' in tag:
+                # Replace existing fill
+                tag = re.sub(r'fill:[^;"]+', f'fill:{color}', tag)
+            else:
+                tag = tag.replace('>', f' style="fill:{color}">')
+            return tag
+        return match.group(0)
+
+    # Match tags with an id attribute
+    return re.sub(r'<(path|g|rect)[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
+```
+
+This ensures:
+- We only match `path`, `g`, or `rect` tags
+- We inject a `style="fill:..."` block if one isn’t present
+- If a `style` exists, it replaces the `fill` portion
+
+---
+
+### ✅ Confirm County Elements Exist
+
+Just to be sure: add this debug print to preview the actual map paths:
+
+```python
+import re
+st.write("🧩 Matching tags (first 5):", re.findall(r'<(path|g|rect)[^>]*id="([^"]+)"[^>]*>', svg_text)[:5])
+```
+
+---
+
+### Ready for a Full Drop-in Fix?
+
+Let me know and I can write a full corrected `apply_county_colors_to_svg()` and `render_svg_file()` for you with everything patched and ready to go.
