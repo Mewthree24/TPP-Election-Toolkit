@@ -13,6 +13,7 @@ st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 def render_svg_file(svg_path: str, title: str = None):
     import streamlit.components.v1 as components
     from bs4 import BeautifulSoup
+    import os
 
     try:
         with open(svg_path, "r", encoding="utf-8") as f:
@@ -21,7 +22,7 @@ def render_svg_file(svg_path: str, title: str = None):
         if title:
             st.subheader(title)
 
-        # Parse the SVG to extract its viewBox for aspect ratio
+        # Parse SVG to extract viewBox
         soup = BeautifulSoup(svg_raw, "html.parser")
         svg_tag = soup.find("svg")
 
@@ -30,20 +31,20 @@ def render_svg_file(svg_path: str, title: str = None):
             _, _, width, height = map(float, viewbox.strip().split())
             ratio = height / width
         else:
-            ratio = 0.8  # fallback ratio if viewBox missing
+            ratio = 0.8  # fallback aspect ratio
 
-        calculated_height = int(ratio * 1000)  # match width=1000px
-
-        # Display SVG with calculated height to avoid cutoff
+        # CSS technique: responsive SVG that preserves aspect ratio
         components.html(
             f"""
-            <div style="display: flex; justify-content: center;">
-                <div style="max-width: 1000px; width: 100%;">
-                    {svg_raw}
+            <div style="position: relative; width: 100%; max-width: 1000px; margin: auto;">
+                <div style="width: 100%; padding-top: {ratio * 100}%; position: relative;">
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                        {svg_raw}
+                    </div>
                 </div>
             </div>
             """,
-            height=calculated_height + 50,  # Add buffer to avoid scrollbars
+            height=0,  # Streamlit ignores height if 0 + we manage it fully in CSS
             scrolling=False
         )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
