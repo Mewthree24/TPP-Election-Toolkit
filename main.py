@@ -42,20 +42,6 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
             color_map[county_id] = color
 
     return color_map
-            if party == "Democratic":
-                color = dem_colors.get(strength, "#cccccc")
-            elif party == "Republican":
-                color = rep_colors.get(strength, "#cccccc")
-            else:
-                color = ind_colors.get(strength, "#cccccc")
-
-            # Only normalize for internal map use
-            county_id = normalize_county_id(county)
-            color_map[county_id] = color
-        except:
-            continue
-
-    return color_map
 
 def apply_county_colors_to_svg(svg_text, color_map):
     def replace_fill(match):
