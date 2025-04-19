@@ -22,6 +22,8 @@ def normalize_county_id(name, state=None):
             .replace(" municipality", "")
             .replace(" borough", "")
             .replace(" county", "")
+            .replace(" parish", " ")
+            .replace(" city", "")
             .replace(".", "")
             .replace("'", "")
             .replace("-", "_")
@@ -29,6 +31,9 @@ def normalize_county_id(name, state=None):
 
     # Fix common abbreviations
     name = name.replace("st_", "st").replace("ste_", "ste")
+
+    # Strip trailing underscores
+    name = name.strip("_")
 
     # Return normalized name
     return name

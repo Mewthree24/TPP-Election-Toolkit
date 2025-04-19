@@ -12,7 +12,7 @@ language = "python3"
 requiredFiles = [".replit", "replit.nix"]
 
 [deployment]
-run = ["sh", "-c", "streamlit run main.py --server.address=0.0.0.0 --server.port=5000"]
+run = ["sh", "-c", "streamlit run main.py --server.address=0.0.0.0 --server.port=5000 --server.headless=true --server.enableCORS=false --server.enableWebsocketCompression=false"]
 deploymentTarget = "cloudrun"
 
 [workflows]
