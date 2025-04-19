@@ -33,10 +33,10 @@ def render_svg_file(svg_path: str, title: str = None):
         components.html(
             f"""
             <div style="display: flex; justify-content: center;">
-                <div style="width: 100%; max-width: 800px;">
+                <div style="width: 100%;">
                     <div style="background-color: black; padding: 5px;">
                         <svg width="{width}" height="{height}" viewBox="{viewbox}" 
-                             style="width: 100%; height: auto;" preserveAspectRatio="xMidYMid meet">
+                             style="width: 100%; height: 100vh;" preserveAspectRatio="xMidYMid contain">
                             {svg_inner}
                         </svg>
                     </div>
