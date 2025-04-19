@@ -215,7 +215,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             width = int(width_match.group(1)) if width_match else 1000
             height = int(height_match.group(1)) if height_match else 600
             svg_data = re.sub(r'<svg', f'<svg viewBox="0 0 {width} {height}"', svg_data)
-        
+
         # Now do all styling edits in one pass
         svg_display = re.sub(
             r'<svg([^>]*)>',
@@ -247,7 +247,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
 
         # Get state name from the selectbox, defaulting to "National_View" if not set
         state_name = st.session_state.get("select_state_box", "National_View")
-        
+
         st.download_button(
             label="📥 Download Map (SVG)",
             data=svg_data.encode("utf-8"),
@@ -682,7 +682,7 @@ if st.session_state["election_data"]:
                 # Shared color levels for all parties
                 color_levels = ["Tilt", "Lean", "Likely", "Safe"]
                 color_mapping = {
-                    "Democratic": {"label": "Dem", "colors": {}},
+                    ""Democratic": {"label": "Dem", "colors": {}},
                     "Republican": {"label": "Rep", "colors": {}},
                     "Independent": {"label": "Ind", "colors": {}}
                 }
@@ -1301,15 +1301,14 @@ if st.session_state["election_data"]:
                                 label = str(col2)
                             else:
                                 label = "Unnamed"
+                    if label in used_names:
+                        count = used_names[label] + 1
+                        used_names[label] = count
+                        label = f"{label} ({count})"
+                    else:
+                        used_names[label] = 1
 
-                            if label in used_names:
-                                count = used_names[label] + 1
-                                used_names[label] = count
-                                label = f"{label} ({count})"
-                            else:
-                                used_names[label] = 1
-
-                            header_row.append(label)
+                    header_row.append(label)
 
                     data_rows = excel_rows[2:]
                     df_display = pd.DataFrame(data_rows, columns=header_row)
