@@ -326,10 +326,10 @@ if uploaded_file:
             extracted_data = {k: data[k] for k in wanted_keys if k in data}
             if not any(k in data for k in wanted_keys):
                 st.warning("No election data found in file. Expected at least one of: " + ", ".join(wanted_keys))
-                return
-            
-            st.session_state["election_data"] = extracted_data
-            st.success("Election data extracted successfully.")
+                st.session_state["election_data"] = {}
+            else:
+                st.session_state["election_data"] = extracted_data
+                st.success("Election data extracted successfully.")
         except Exception as e:
             st.error(f"Failed to process election data: {str(e)}")
     except Exception as e:
