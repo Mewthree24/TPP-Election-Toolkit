@@ -13,28 +13,25 @@ st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
 # === Color Generation Functions ===
 def normalize_county_id(name, state=None):
-    if state == "Alaska":
-        # Special handling for Alaska's boroughs and census areas 
-        return (
-            name.lower()
-            .replace(" census area", "")
+    name = name.lower().strip()
+
+    # Remove generic suffixes
+    name = (
+        name.replace(" census area", "")
             .replace(" city and borough", "")
             .replace(" municipality", "")
             .replace(" borough", "")
-            .replace(" ", "_")
+            .replace(" county", "")
+            .replace(".", "")
+            .replace("'", "")
             .replace("-", "_")
-            .replace(".", "")
-            .replace("'", "")
-            .strip()
-        )
-    else:
-        return (
-            name.lower()
             .replace(" ", "_")
-            .replace("-", "_") 
-            .replace(".", "")
-            .replace("'", "")
-            .replace("st_", "st")
+    )
+
+    # Fix common abbreviations
+    name = name.replace("st_", "st").replace("ste_", "ste")
+
+    return name
             .replace("ste_", "ste")
             .removesuffix("_county")
             + "_county"
