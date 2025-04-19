@@ -1,0 +1,66 @@
+Great — we’re very close to getting coloring fully functional. Since you want map coloring to be based on the spreadsheet (which makes sense for consistency), let me summarize **what's going wrong and how to fix it**, based on everything you’ve uploaded and described.
+
+---
+
+### ✅ Current Setup
+- You generate maps by applying a color map to SVG elements with `id` attributes.
+- Your function `build_county_color_map` reads from the dataframe and tries to map `"County"` names to `"Rating"` values, which are then matched to colors.
+
+---
+
+### ❌ Current Issue
+Your color map ends up empty (`{}`), even though you are passing `df_display` and color palettes. This happens because:
+
+- The **county names in the SVG use underscores and lowercase** (e.g., `"los_angeles"`).
+- The **county names in the spreadsheet are title-case with spaces** (e.g., `"Los Angeles"`).
+- Your normalization logic (`normalize_county_id`) is correct, but your spreadsheet `df_display` **does not have a `"County"` column** at the moment the color map is built.
+
+You’re passing the wrong `df_display` — the one being shown in the dataframe display, which is merged from Excel rows, and **does not include "County" as a column** directly. It uses headers like `"Democratic - Candidate"`.
+
+---
+
+### ✅ The Fix
+
+Update your logic so that:
+
+1. You pass the original raw county dataframe (the one used to generate the spreadsheet, not the rendered Excel table) to `build_county_color_map`.
+2. The `"County"` and `"Rating"` columns **must be present and matchable** at that point.
+
+### 🔧 Minimal Code Fix
+
+In the section where you're calling `render_svg_file(...)` for county-level maps, change this:
+
+```python
+render_svg_file(svg_path, title="🗺️ County-Level Map", df_display=df, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
+```
+
+To this:
+
+```python
+# Before: df was the raw table, but we need the one with "County" and "Rating"
+df_coloring = df_display[["County", "Rating"]] if "County" in df_display and "Rating" in df_display else None
+
+render_svg_file(svg_path, title="🗺️ County-Level Map", df_display=df_coloring, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
+```
+
+Then inside `render_svg_file(...)`, **add a debug print before color map generation**:
+
+```python
+if df_display is not None:
+    st.write("🧪 Coloring from counties:", df_display.head())
+```
+
+---
+
+### 🧪 Bonus Debug
+If coloring still doesn't work, you can add:
+
+```python
+st.write("🏷️ All SVG IDs found:", re.findall(r'id="([^"]+)"', svg_data))
+```
+
+That will list all IDs in the SVG so you can directly compare them to the keys in your `color_map`.
+
+---
+
+Ready to go whenever you upload the corrected `df_display` logic or want help patching that block in your canvas.
