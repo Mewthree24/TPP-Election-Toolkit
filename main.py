@@ -77,7 +77,7 @@ def build_state_color_map(df, dem_colors, rep_colors, ind_colors):
             normalized = state_name_to_code.get(normalized, "")
         else:
             normalized = normalized.upper()
-            
+
         color = rating_to_color.get(rating.strip(), "#cccccc")
         color_map[normalized] = color
 
@@ -196,7 +196,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             if "presidential" in svg_path or "states" in svg_path:
                 color_map = build_state_color_map(df_display, dem_colors, rep_colors, ind_colors)
                 svg_data = apply_state_colors_to_svg(svg_data, color_map)
-                
+
                 # Add click handlers to state paths
                 def add_click_handler(match):
                     tag = match.group(0)
@@ -209,7 +209,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
                         else:
                             tag = tag.replace('>', f' {onclick} style="cursor: pointer;">')
                     return tag
-                
+
                 svg_data = re.sub(r'<(path|g|rect|polygon|polyline|circle)[^>]*id="([^"]+)"[^>]*>', add_click_handler, svg_data)
             else:
                 color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
@@ -228,7 +228,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         # Inject viewBox if not present and ensure preserveAspectRatio is set
         if not re.search(r'viewBox=', svg_display):
             svg_display = re.sub(r'<svg', '<svg viewBox="0 0 1000 600"', svg_display)
-        
+
         # Create base64 of modified SVG
         encoded = base64.b64encode(svg_display.encode()).decode()
 
@@ -338,10 +338,10 @@ clicked_state = st_javascript("""
     window.clicked_state = null;
     window.addEventListener('message', function(e) {
         if (e.data.type === 'selectState') {
-            window.clicked_state = e.data.state;
+            localStorage.setItem('clicked_state', e.data.state);
         }
     });
-    return window.clicked_state;
+    return localStorage.getItem('clicked_state');
 """)
 
 if clicked_state:
@@ -687,7 +687,7 @@ if st.session_state["election_data"]:
                     "Democratic": {"label": "Dem", "colors": {}},
                     "Republican": {"label": "Rep", "colors": {}},
                     "Independent": {"label": "Ind", "colors": {}}
-                }
+                }}
 
                 with col1:
                     st.markdown("**Democratic Shades**")
