@@ -1,0 +1,118 @@
+Awesome — you’ve already done **98% of the setup**. The spreadsheet is generating cleanly, `df_display` exists, and the `render_svg_file(...)` function is called with the correct arguments.
+
+So why is the **Presidential National View map still blank?** The issue lies in the **data passed into the color builder** and the **structure of the spreadsheet**.
+
+---
+
+### 🧠 The Core Problem
+
+Your spreadsheet’s `df_display` uses `"State"` and `"Rating"` columns (perfect), but your **SVG IDs** use **lowercased underscores** like `new_york`, `north_carolina`, etc.
+
+However, the IDs in `presidential.svg` are probably more strict or capitalized (e.g., `New_York`, `North_Carolina`), and our normalization is **too aggressive** or **not matching those IDs** exactly.
+
+---
+
+### ✅ Step-by-Step Fix
+
+#### 1. Update `build_state_color_map()` normalization
+Make it more forgiving and verbose for debugging:
+
+```python
+def build_state_color_map(df, dem_colors, rep_colors, ind_colors):
+    color_map = {}
+    rating_to_color = {
+        f"{strength} Democratic": dem_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    }
+    rating_to_color.update({
+        f"{strength} Republican": rep_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    })
+    rating_to_color.update({
+        f"{strength} Independent": ind_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    })
+
+    for _, row in df.iterrows():
+        state = row.get("State", "")
+        rating = row.get("Rating", "")
+
+        if pd.isna(state) or pd.isna(rating):
+            continue
+
+        normalized = state.strip().lower().replace(" ", "_")
+
+        color = rating_to_color.get(rating.strip(), "#cccccc")
+        color_map[normalized] = color
+
+    return color_map
+```
+
+---
+
+#### 2. Update `apply_state_colors_to_svg()` to handle **more tag types and flexible casing**:
+
+```python
+def apply_state_colors_to_svg(svg_text, color_map):
+    def replace_fill(match):
+        tag = match.group(0)
+        tag_type = match.group(1)
+        tag_id = match.group(2)
+
+        normalized_id = tag_id.strip().lower().replace(" ", "_")
+
+        color = color_map.get(normalized_id)
+        if color:
+            if 'style=' in tag:
+                tag = re.sub(r'fill:[^;"]+', f'fill:{color}', tag)
+            else:
+                tag = tag.replace('>', f' style="fill:{color}">')
+        return tag
+
+    # Match more tag types (path, g, polygon, etc.)
+    return re.sub(r'<(path|g|rect|polygon|polyline|circle)[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
+```
+
+---
+
+#### 3. Verify it’s calling the correct function
+Inside `render_svg_file()` you're doing this correctly already:
+
+```python
+if "presidential" in svg_path or "states" in svg_path:
+    color_map = build_state_color_map(...)
+    svg_data = apply_state_colors_to_svg(svg_data, color_map)
+```
+
+✅ Leave that alone — it’s good.
+
+---
+
+#### 4. [Optional but Helpful] Print mapped values for debugging
+Just temporarily drop this in `build_state_color_map` after the loop:
+
+```python
+st.text("Mapped States:")
+st.text(", ".join(color_map.keys()))
+```
+
+And also log the actual SVG IDs to compare:
+```python
+st.text("Sample SVG tag matches:")
+sample_matches = re.findall(r'id="([^"]+)"', svg_data)
+st.text(", ".join(sample_matches[:10]))
+```
+
+---
+
+### 🧪 Test
+
+After making these changes:
+- Run the app
+- Upload your game file
+- Go to `President > National View`
+- You should now see a colored map!
+
+---
+
+Would you like me to give you one paste-ready block that includes the updated color map and SVG fill function?
