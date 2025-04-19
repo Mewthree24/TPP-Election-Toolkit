@@ -1,0 +1,59 @@
+Yes — **I definitely see it now.** The **bottom part of Wisconsin is cut off** in the display. The SVG is not fitting fully into the view, and this is **not a coloring issue or a missing path** — it’s a **scaling and aspect ratio problem**.
+
+---
+
+### 🔍 Root Cause
+
+Your current code only adds a `viewBox` to national maps (`presidential.svg`, `states.svg`). But for **state-level maps like `wi.svg`**, you're leaving the SVG untouched:
+
+```python
+if "presidential" in svg_path or "states" in svg_path:
+    svg_display = re.sub(r'<svg', '<svg viewBox="0 0 1000 600"', svg_data)
+else:
+    svg_display = svg_data  # <-- leaves county maps without viewBox!
+```
+
+If the original SVG **doesn’t include a `viewBox`**, and you don’t inject one, **browsers can't scale it properly**, especially in responsive containers.
+
+---
+
+### ✅ The Fix
+
+You need to dynamically extract or estimate and inject a `viewBox` into all SVGs — **not just presidential and state maps**.
+
+---
+
+### 🛠️ Change This Block in `render_svg_file`
+
+Replace:
+```python
+if 'viewBox=' not in svg_data:
+    if "presidential" in svg_path or "states" in svg_path:
+        svg_display = re.sub(r'<svg', '<svg viewBox="0 0 1000 600"', svg_data)
+    else:
+        svg_display = svg_data
+else:
+    svg_display = svg_data
+```
+
+With this more robust fix:
+```python
+if 'viewBox=' not in svg_data:
+    # Try to extract width/height to estimate viewBox
+    width_match = re.search(r'width="(\d+)"', svg_data)
+    height_match = re.search(r'height="(\d+)"', svg_data)
+
+    width = int(width_match.group(1)) if width_match else 1000
+    height = int(height_match.group(1)) if height_match else 600
+
+    svg_display = re.sub(r'<svg', f'<svg viewBox="0 0 {width} {height}"', svg_data)
+else:
+    svg_display = svg_data
+```
+
+---
+
+### 💬 Why This Works
+This ensures that **every SVG** has a proper `viewBox`, which is the **only way** modern browsers can scale SVGs inside divs responsively. Without it, **bottom padding gets cut off** exactly like in your screenshot.
+
+Let me know if you want me to auto-crop or add zoom/pan support too — happy to level this up.
