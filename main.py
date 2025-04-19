@@ -561,41 +561,51 @@ if st.session_state["election_data"]:
                 # Create a unique identifier based on location in code
                 color_ui_id = f"national_view_{hash(selected_state + selected_election_type)}"
 
+                # Shared color levels for all parties
+                color_levels = ["Tilt", "Lean", "Likely", "Safe"]
+                color_mapping = {
+                    "Democratic": {"label": "Dem", "colors": {}},
+                    "Republican": {"label": "Rep", "colors": {}},
+                    "Independent": {"label": "Ind", "colors": {}}
+                }
+
                 with col1:
                     st.markdown("**Democratic Shades**")
-                    dem_colors = {}
-                    for level in ["Tilt", "Lean", "Likely", "Safe"]:
-                        color = st.color_picker(
+                    for level in color_levels:
+                        color_key = f"dem_{level.lower()}"
+                        st.session_state.color_settings["Democratic"][level] = st.color_picker(
                             f"{level} Dem",
-                            value=st.session_state["color_settings"]["Democratic"][level],
-                            key=f"color_{level.lower()}_dem"
+                            value=st.session_state.color_settings["Democratic"][level],
+                            key=color_key
                         )
-                        st.session_state["color_settings"]["Democratic"][level] = color
-                        dem_colors[level] = color
+                        color_mapping["Democratic"]["colors"][level] = st.session_state.color_settings["Democratic"][level]
 
                 with col2:
                     st.markdown("**Republican Shades**")
-                    rep_colors = {}
-                    for level in ["Tilt", "Lean", "Likely", "Safe"]:
-                        color = st.color_picker(
+                    for level in color_levels:
+                        color_key = f"rep_{level.lower()}"
+                        st.session_state.color_settings["Republican"][level] = st.color_picker(
                             f"{level} Rep",
-                            value=st.session_state["color_settings"]["Republican"][level],
-                            key=f"color_{level.lower()}_rep"
+                            value=st.session_state.color_settings["Republican"][level],
+                            key=color_key
                         )
-                        st.session_state["color_settings"]["Republican"][level] = color
-                        rep_colors[level] = color
+                        color_mapping["Republican"]["colors"][level] = st.session_state.color_settings["Republican"][level]
 
                 with col3:
                     st.markdown("**Independent Shades**")
-                    ind_colors = {}
-                    for level in ["Tilt", "Lean", "Likely", "Safe"]:
-                        color = st.color_picker(
+                    for level in color_levels:
+                        color_key = f"ind_{level.lower()}"
+                        st.session_state.color_settings["Independent"][level] = st.color_picker(
                             f"{level} Ind",
-                            value=st.session_state["color_settings"]["Independent"][level],
-                            key=f"color_{level.lower()}_ind"
+                            value=st.session_state.color_settings["Independent"][level],
+                            key=color_key
                         )
-                        st.session_state["color_settings"]["Independent"][level] = color
-                        ind_colors[level] = color
+                        color_mapping["Independent"]["colors"][level] = st.session_state.color_settings["Independent"][level]
+
+                # Set the color variables for map rendering
+                dem_colors = color_mapping["Democratic"]["colors"]
+                rep_colors = color_mapping["Republican"]["colors"]
+                ind_colors = color_mapping["Independent"]["colors"]
 
             if selected_state != "National View":
                 state_code = next((code for code, name in state_code_to_name.items() if name == selected_state), None)
