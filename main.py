@@ -16,25 +16,20 @@ def normalize_county_id(name, state=None):
     name = name.lower().strip()
 
     # Remove generic suffixes
-    name = (
-        name.replace(" census area", "")
-            .replace(" city and borough", "")
-            .replace(" municipality", "")
-            .replace(" borough", "")
-            .replace(" county", "")
-            .replace(".", "")
-            .replace("'", "")
-            .replace("-", "_")
-            .replace(" ", "_")
-    )
+    name = (name.replace(" census area", "")
+           .replace(" city and borough", "")
+           .replace(" municipality", "")
+           .replace(" borough", "")
+           .replace(" county", "")
+           .replace(".", "")
+           .replace("'", "")
+           .replace("-", "_")
+           .replace(" ", "_"))
 
     # Fix common abbreviations
     name = name.replace("st_", "st").replace("ste_", "ste")
 
-    return name
-            .replace("ste_", "ste")
-            .removesuffix("_county")
-            + "_county"
+    return name.removesuffix("_county") + "_county"
         )
 
 def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
