@@ -1,0 +1,75 @@
+Yes — we can absolutely make the **map update live** whenever the user changes the **margin threshold sliders**, so it always reflects the current spreadsheet values.
+
+You're already most of the way there, and here's how to lock it in:
+
+---
+
+### ✅ Summary of What We’ll Do:
+1. **Spreadsheets already use the current `tilt_max`, `lean_max`, and `likely_max` values** — no change needed there.
+2. **We need to re-trigger the map generation** **after any threshold change** by:
+   - Moving the `render_svg_file(...)` call **below the spreadsheet generation**, which already uses the live thresholds.
+   - Making sure map code doesn’t cache outdated versions.
+
+---
+
+### ✅ Step-by-Step Instructions
+
+#### 🔁 1. Reorganize the render logic like this:
+Make sure the **map rendering** happens *after* the spreadsheet DataFrame is created with updated thresholds.
+
+In your main logic (for President, Senate, Governor), update this flow:
+
+```python
+# Assume tilt_max, lean_max, and likely_max are pulled from st.session_state earlier
+
+# Generate spreadsheet
+if selected_election_type == "President":
+    df_display, _ = generate_presidential_spreadsheet(
+        pres_data, state_map, color_settings,
+        tilt_max, lean_max, likely_max
+    )
+
+    st.dataframe(df_display)
+
+    if selected_state == "National View":
+        svg_path = os.path.join("SVG", "presidential.svg")
+    else:
+        svg_path = os.path.join("SVG", f"{selected_state.lower()}.svg")
+
+    if os.path.exists(svg_path):
+        render_svg_file(
+            svg_path,
+            title="🗺️ County-Level Map" if selected_state != "National View" else "🗺️ Presidential National Map",
+            df_display=df_display,
+            dem_colors=dem_colors,
+            rep_colors=rep_colors,
+            ind_colors=ind_colors,
+        )
+```
+
+> 💡 *Repeat similar logic for Senate and Governor using their corresponding spreadsheet functions and `states.svg`.*
+
+---
+
+#### 🔁 2. Avoid st.cache in map generation (if you're using it)
+Ensure that functions like `render_svg_file()` or the color map builder aren’t cached with `@st.cache` — otherwise it won’t update when thresholds change.
+
+---
+
+#### ✅ 3. Already Done
+- Sliders are stored in `st.session_state` ✔
+- Spreadsheet reacts immediately ✔
+- You’re passing `df_display` to the SVG renderer ✔
+
+---
+
+### 🔄 Example Result:
+When the user drags a slider:
+- `tilt_max`, `lean_max`, and `likely_max` update in `st.session_state`
+- `df_display` regenerates with new ratings
+- `color_map` updates based on new ratings
+- 🗺️ **Map colors re-render live**
+
+---
+
+Let me know if you want this implemented for all election types right now — or if you'd like help wiring it up for a specific one like Senate.
