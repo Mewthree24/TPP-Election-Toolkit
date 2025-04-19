@@ -205,9 +205,16 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         # 1. Only inject viewBox for national maps
         # Force viewBox if missing
         if 'viewBox=' not in svg_data:
-            svg_data = re.sub(r'<svg', '<svg viewBox="0 0 1000 600"', svg_data)
+            # Try to extract width/height to estimate viewBox
+            width_match = re.search(r'width="(\d+)"', svg_data)
+            height_match = re.search(r'height="(\d+)"', svg_data)
 
-        # Always enforce preserveAspectRatio
+            width = int(width_match.group(1)) if width_match else 1000
+            height = int(height_match.group(1)) if height_match else 600
+
+            svg_data = re.sub(r'<svg', f'<svg viewBox="0 0 {width} {height}"', svg_data)
+
+        # Clean up and inject single preserveAspectRatio 
         svg_display = re.sub(
             r'<svg([^>]*)>',
             lambda m: (
@@ -690,7 +697,8 @@ if st.session_state["election_data"]:
                     st.markdown("**Independent Shades**")
                     for level in color_levels:
                         color_key = f"ind_{level.lower()}"
-                        st.session_state.color_settings["Independent"][level] = st.color_picker(
+                        st.session_state.color_settings["Independent"][level] =```python
+ = st.color_picker(
                             f"{level} Ind",
                             value=st.session_state.color_settings["Independent"][level],
                             key=color_key
@@ -1310,7 +1318,7 @@ if st.session_state["election_data"]:
                         if selected_election_type == "President":
                             pres_path = os.path.join("SVG", "presidential.svg")
                             if os.path.exists(pres_path):
-                                render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
+                                render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, indcolors=ind_colors)
                         elif selected_election_type in ["Senate", "Governor"]:
                             states_path = os.path.join("SVG", "states.svg")
                             if os.path.exists(states_path):
