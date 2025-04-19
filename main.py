@@ -1160,36 +1160,7 @@ if st.session_state["election_data"]:
                         key=f"{selected_election_type.lower().replace(' ', '_')}_national_view"
                     )
 
-                    if selected_election_type in ["President", "Senate", "Governor"] and selected_state != "None":
-                        st.markdown("### 🎯 Margin Thresholds")
-                        col1, col2, col3 = st.columns(3)
-
-                        with col1:
-                            st.markdown("**Democratic Shades**")
-                            dem_colors = {
-                                "Tilt": st.color_picker("Tilt Dem", "#99ccff", key=f"color_tilt_dem_{selected_state}_{selected_election_type}"),
-                                "Lean": st.color_picker("Lean Dem", "#6699ff", key=f"color_lean_dem_{selected_state}_{selected_election_type}"),
-                                "Likely": st.color_picker("Likely Dem", "#3366cc", key=f"color_likely_dem_{selected_state}_{selected_election_type}"),
-                                "Safe": st.color_picker("Safe Dem", "#003399", key=f"color_safe_dem_{selected_state}_{selected_election_type}")
-                            }
-
-                        with col2:
-                            st.markdown("**Republican Shades**")
-                            rep_colors = {
-                                "Tilt": st.color_picker("Tilt Rep", "#ff9999", key=f"color_tilt_rep_{selected_state}_{selected_election_type}"),
-                                "Lean": st.color_picker("Lean Rep", "#ff6666", key=f"color_lean_rep_{selected_state}_{selected_election_type}"),
-                                "Likely": st.color_picker("Likely Rep", "#cc3333", key=f"color_likely_rep_{selected_state}_{selected_election_type}"),
-                                "Safe": st.color_picker("Safe Rep", "#990000", key=f"color_safe_rep_{selected_state}_{selected_election_type}")
-                            }
-
-                        with col3:
-                            st.markdown("**Independent Shades**")
-                            ind_colors = {
-                                "Tilt": st.color_picker("Tilt Ind", "#cccc99", key=f"color_tilt_ind_{selected_state}_{selected_election_type}"),
-                                "Lean": st.color_picker("Lean Ind", "#999966", key=f"color_lean_ind_{selected_state}_{selected_election_type}"),
-                                "Likely": st.color_picker("Likely Ind", "#666633", key=f"color_likely_ind_{selected_state}_{selected_election_type}"),
-                                "Safe": st.color_picker("Safe Ind", "#333300", key=f"color_safe_ind_{selected_state}_{selected_election_type}")
-                            }
+                    
 
                     # === National View Maps ===
                     if selected_state == "National View":
