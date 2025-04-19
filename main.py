@@ -88,6 +88,14 @@ if st.sidebar.checkbox("🔍 Show All State SVGs"):
 if "election_data" not in st.session_state:
     st.session_state["election_data"] = {}
 
+# Initialize margin thresholds
+if "tilt_max" not in st.session_state:
+    st.session_state["tilt_max"] = 3
+if "lean_max" not in st.session_state:
+    st.session_state["lean_max"] = 7
+if "likely_max" not in st.session_state:
+    st.session_state["likely_max"] = 12
+
 st.title("🗳️ TPP Election Toolkit")
 
 # Upload file
@@ -1082,10 +1090,10 @@ if st.session_state["election_data"]:
         # === State Legislature National View Spreadsheet Generator ===
         elif selected_election_type in ["State House", "State Senate"]:
             # Margin thresholds for state legislature 
-            st.subheader("🎯 Margin Thresholds")
-            tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="legislature_tilt")
-            lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="legislature_lean") 
-            likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="legislature_likely")
+            st.markdown("### 🎯 Margin Thresholds")
+            st.session_state["tilt_max"] = st.slider("Tilt Margin Max (%)", 1, 5, st.session_state["tilt_max"], key="slider_tilt")
+            st.session_state["lean_max"] = st.slider("Lean Margin Max (%)", 5, 10, st.session_state["lean_max"], key="slider_lean")
+            st.session_state["likely_max"] = st.slider("Likely Margin Max (%)", 10, 20, st.session_state["likely_max"], key="slider_likely")
 
             from collections import defaultdict
             data_key = "electNightStH" if selected_election_type == "State House" else "electNightStS"
