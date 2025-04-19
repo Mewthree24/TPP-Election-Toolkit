@@ -180,6 +180,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
     import streamlit.components.v1 as components
     import base64
     import os
+    import re
 
     try:
         with open(svg_path, "r", encoding="utf-8") as f:
@@ -194,15 +195,41 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             if "presidential" in svg_path or "states" in svg_path:
                 color_map = build_state_color_map(df_display, dem_colors, rep_colors, ind_colors)
                 svg_data = apply_state_colors_to_svg(svg_data, color_map)
+                
+                # Add click handlers to state paths
+                def add_click_handler(match):
+                    tag = match.group(0)
+                    state_code = match.group(2)
+                    state_name = state_code_to_name.get(state_code.upper(), "")
+                    if state_name:
+                        onclick = f'onclick="window.parent.postMessage({{type:\'selectState\', state:\'{state_name}\'}}, \'*\')"'
+                        if 'style="' in tag:
+                            tag = tag.replace('style="', f'{onclick} style="cursor: pointer; ')
+                        else:
+                            tag = tag.replace('>', f' {onclick} style="cursor: pointer;">')
+                    return tag
+                
+                svg_data = re.sub(r'<(path|g|rect|polygon|polyline|circle)[^>]*id="([^"]+)"[^>]*>', add_click_handler, svg_data)
             else:
                 color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
                 svg_data = apply_county_colors_to_svg(svg_data, color_map, state_code)
 
         encoded = base64.b64encode(svg_data.encode()).decode()
 
-        # === Force proper aspect ratio rendering (like image) ===
+        # === Force proper aspect ratio rendering (like image) and add message handler ===
         components.html(
             f"""
+            <script>
+            window.addEventListener('message', function(e) {{
+                if (e.data.type === 'selectState') {{
+                    const selectBox = window.parent.document.querySelector('select[aria-label="Select State"]');
+                    if (selectBox) {{
+                        selectBox.value = e.data.state;
+                        selectBox.dispatchEvent(new Event('change', {{ bubbles: true }}));
+                    }}
+                }}
+            }});
+            </script>
             <div style="display: flex; justify-content: center;">
                 <div style="
                     width: 100%;
@@ -212,8 +239,10 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
                     align-items: center;
                     justify-content: center;
                     background: none;">
-                    <img src="data:image/svg+xml;base64,{encoded}"
-                         style="width: 100%; height: 100%; object-fit: contain;" />
+                    <object data="data:image/svg+xml;base64,{encoded}"
+                            type="image/svg+xml"
+                            style="width: 100%; height: 100%; object-fit: contain;">
+                    </object>
                 </div>
             </div>
             """,
