@@ -224,6 +224,10 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             svg_data
         )
 
+        # Inject viewBox if not present and ensure preserveAspectRatio is set
+        if not re.search(r'viewBox=', svg_display):
+            svg_display = re.sub(r'<svg', '<svg viewBox="0 0 1000 600"', svg_display)
+        
         # Create base64 of modified SVG
         encoded = base64.b64encode(svg_display.encode()).decode()
 
@@ -240,12 +244,14 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
                 }}
             }});
             </script>
-            <div style="width: 100%; height: auto; display: flex; justify-content: center;">
-                <div style="width: 100%; max-width: 1000px; height: auto;">
-                    <object data="data:image/svg+xml;base64,{encoded}"
-                            type="image/svg+xml"
-                            style="width: 100%; height: auto; display: block;">
-                    </object>
+            <div style="width: 100%; display: flex; justify-content: center; align-items: center;">
+                <div style="width: 100%; max-width: 1200px; margin: 0 auto;">
+                    <div style="position: relative; width: 100%; padding-bottom: 60%;">
+                        <object data="data:image/svg+xml;base64,{encoded}"
+                                type="image/svg+xml"
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
+                        </object>
+                    </div>
                 </div>
             </div>
             """,
