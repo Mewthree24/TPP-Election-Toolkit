@@ -203,13 +203,20 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
 
         # === Apply proper SVG rendering rules ===
         # 1. Only inject viewBox for national maps
+        # Force viewBox if missing
         if 'viewBox=' not in svg_data:
-            if "presidential" in svg_path or "states" in svg_path:
-                svg_display = re.sub(r'<svg', '<svg viewBox="0 0 1000 600"', svg_data)
-            else:
-                svg_display = svg_data  # Keep original viewBox for state/county maps
-        else:
-            svg_display = svg_data
+            svg_data = re.sub(r'<svg', '<svg viewBox="0 0 1000 600"', svg_data)
+
+        # Always enforce preserveAspectRatio
+        svg_display = re.sub(
+            r'<svg([^>]*)>',
+            lambda m: (
+                '<svg' +
+                re.sub(r'preserveAspectRatio="[^"]*"', '', m.group(1)) +
+                ' preserveAspectRatio="xMidYMid meet">'
+            ),
+            svg_data
+        )
 
         # 2. Clean up and inject single preserveAspectRatio 
         svg_display = re.sub(

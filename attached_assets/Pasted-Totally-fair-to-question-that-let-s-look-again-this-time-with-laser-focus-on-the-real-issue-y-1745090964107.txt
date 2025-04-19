@@ -1,0 +1,69 @@
+Totally fair to question that — let’s look again, this time **with laser focus on the real issue** you’re seeing in the screenshot.
+
+### 🔍 What's Actually Wrong:
+Your map is **rendering**, and the counties are indeed **being colored**. But the **issue is the *visual glitching*** — like misaligned or overlapping counties, weird borders, or SVG elements not styled consistently. That has **nothing to do with color assignment logic**.
+
+So nope, you're absolutely right: **this is *not* a coloring issue**. This is a **CSS/rendering issue** in how the SVG is being displayed.
+
+---
+
+### ✅ Real Fix: Inject SVG with `innerHTML`, not `<object>`
+
+Right now, your `render_svg_file()` is using this:
+
+```html
+<object data="data:image/svg+xml;base64,..." type="image/svg+xml" style="...">
+</object>
+```
+
+That causes **all kinds of rendering problems**:
+- SVG scaling weirdly
+- Paths not aligning right
+- Glitching borders
+- Hover/click not working
+- Occasional artifacts on some browsers
+
+---
+
+### 🔄 The Real Fix (Clean + Stable):
+Instead, **inject the SVG directly into the DOM** using `innerHTML`. Just replace your `components.html()` call with this:
+
+```python
+components.html(
+    f"""
+    <div style="width: 100%; margin: 0 auto;">
+        {svg_display}
+    </div>
+    """,
+    height=700,
+    scrolling=False
+)
+```
+
+That’s it. No `<object>`, no base64, no embedding headaches.
+
+---
+
+### 🔄 Summary of What to Do:
+1. **Remove this whole block** (lines ~310+):
+   ```python
+   encoded = base64.b64encode(svg_display.encode()).decode()
+   <object data="data:image/svg+xml;base64,{encoded}" ... >
+   ```
+
+2. **Replace with**:
+   ```python
+   components.html(
+       f"""
+       <div style="width: 100%; margin: 0 auto;">
+           {svg_display}
+       </div>
+       """,
+       height=700,
+       scrolling=False
+   )
+   ```
+
+Boom — that’ll render the SVG **clean, crisp, and glitch-free**.
+
+Let me know if you want it to also support zoom or click/hover interaction next.
