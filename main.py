@@ -28,7 +28,7 @@ def normalize_county_id(name, state=None):
 
     # Fix common abbreviations
     name = name.replace("st_", "st").replace("ste_", "ste")
-    
+
     # Return normalized name
     return name
 
@@ -522,31 +522,34 @@ if st.session_state["election_data"]:
                 st.markdown("### 🎨 Color Customizer")
                 col1, col2, col3 = st.columns(3)
 
+                # Create a unique identifier based on location in code
+                color_ui_id = f"national_view_{hash(selected_state + selected_election_type)}"
+
                 with col1:
                     st.markdown("**Democratic Shades**")
                     dem_colors = {
-                        "Tilt": st.color_picker("Tilt Dem", "#99ccff", key=f"color_tilt_dem_{selected_state}_{selected_election_type}"),
-                        "Lean": st.color_picker("Lean Dem", "#6699ff", key=f"color_lean_dem_{selected_state}_{selected_election_type}"),
-                        "Likely": st.color_picker("Likely Dem", "#3366cc", key=f"color_likely_dem_{selected_state}_{selected_election_type}"),
-                        "Safe": st.color_picker("Safe Dem", "#003399", key=f"color_safe_dem_{selected_state}_{selected_election_type}")
+                        "Tilt": st.color_picker("Tilt Dem", "#99ccff", key=f"color_tilt_dem_{color_ui_id}"),
+                        "Lean": st.color_picker("Lean Dem", "#6699ff", key=f"color_lean_dem_{color_ui_id}"),
+                        "Likely": st.color_picker("Likely Dem", "#3366cc", key=f"color_likely_dem_{color_ui_id}"),
+                        "Safe": st.color_picker("Safe Dem", "#003399", key=f"color_safe_dem_{color_ui_id}")
                     }
 
                 with col2:
                     st.markdown("**Republican Shades**")
                     rep_colors = {
-                        "Tilt": st.color_picker("Tilt Rep", "#ff9999", key=f"color_tilt_rep_{selected_state}_{selected_election_type}"),
-                        "Lean": st.color_picker("Lean Rep", "#ff6666", key=f"color_lean_rep_{selected_state}_{selected_election_type}"),
-                        "Likely": st.color_picker("Likely Rep", "#cc3333", key=f"color_likely_rep_{selected_state}_{selected_election_type}"),
-                        "Safe": st.color_picker("Safe Rep", "#990000", key=f"color_safe_rep_{selected_state}_{selected_election_type}")
+                        "Tilt": st.color_picker("Tilt Rep", "#ff9999", key=f"color_tilt_rep_{color_ui_id}"),
+                        "Lean": st.color_picker("Lean Rep", "#ff6666", key=f"color_lean_rep_{color_ui_id}"),
+                        "Likely": st.color_picker("Likely Rep", "#cc3333", key=f"color_likely_rep_{color_ui_id}"),
+                        "Safe": st.color_picker("Safe Rep", "#990000", key=f"color_safe_rep_{color_ui_id}")
                     }
 
                 with col3:
                     st.markdown("**Independent Shades**")
                     ind_colors = {
-                        "Tilt": st.color_picker("Tilt Ind", "#cccc99", key=f"color_tilt_ind_{selected_state}_{selected_election_type}"),
-                        "Lean": st.color_picker("Lean Ind", "#999966", key=f"color_lean_ind_{selected_state}_{selected_election_type}"),
-                        "Likely": st.color_picker("Likely Ind", "#666633", key=f"color_likely_ind_{selected_state}_{selected_election_type}"),
-                        "Safe": st.color_picker("Safe Ind", "#333300", key=f"color_safe_ind_{selected_state}_{selected_election_type}")
+                        "Tilt": st.color_picker("Tilt Ind", "#cccc99", key=f"color_tilt_ind_{color_ui_id}"),
+                        "Lean": st.color_picker("Lean Ind", "#999966", key=f"color_lean_ind_{color_ui_id}"),
+                        "Likely": st.color_picker("Likely Ind", "#666633", key=f"color_likely_ind_{color_ui_id}"),
+                        "Safe": st.color_picker("Safe Ind", "#333300", key=f"color_safe_ind_{color_ui_id}")
                     }
 
             if selected_state != "National View":
@@ -1236,7 +1239,7 @@ if st.session_state["election_data"]:
             ws.cell(row=2, column=col, value="Margin #")
             ws.cell(row=2, column=col + 1, value="Margin %")
             ws.cell(row=2, column=col + 2, value="Total Vote")
-            ws.cell(row=2, column=col + 3, value="Rating")
+            ws.cellrow=2, column=col + 3, value="Rating")
 
             for r in range(1, 3):
                 for c in range(1, col + 4):
