@@ -638,7 +638,7 @@ if st.session_state["election_data"]:
                                 pct = round(v / total * 100, 2) if total else 0
                                 candidate_name = party_to_candidate[p]
 
-                                candidate_ev = next((c.get("electoralVotes", 0) for c in entry.get("cands", []) if c["name"] == candidate_name), 0))
+                                candidate_ev = next((c.get("electoralVotes", 0) for c in entry.get("cands", []) if c["name"] == candidate_name), 0)
                                 display_ev = candidate_ev if p == winner_party else "-"
 
                                 ws.cell(row=row_idx, column=col, value=f"{v:,}")                      # Raw votes
