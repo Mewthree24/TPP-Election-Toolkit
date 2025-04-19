@@ -636,7 +636,7 @@ if st.session_state["election_data"]:
 
                         for r in range(1, 3):
                             for c in range(1, col + 4):
-                                cell = ws.cell(row=r, columnc)
+                                cell = ws.cell(row=r, column=c)
                                 cell.font = Font(bold=True)
                                 cell.alignment = Alignment(horizontal="center", vertical="center")
 
