@@ -7,6 +7,8 @@ from io import BytesIO
 from collections import defaultdict
 import os
 
+st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
+
 # === Map Generation ===
 svg_folder_path = os.path.join(os.getcwd(), "SVG")
 svg_files = [f for f in os.listdir(svg_folder_path) if f.endswith(".svg")]
@@ -30,7 +32,6 @@ if st.sidebar.checkbox("🔍 Show All State SVGs"):
 if "election_data" not in st.session_state:
     st.session_state["election_data"] = {}
 
-st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 st.title("🗳️ TPP Election Toolkit")
 
 # Upload file
