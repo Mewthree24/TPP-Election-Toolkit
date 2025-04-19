@@ -1,0 +1,76 @@
+You’re absolutely right to ask this — and **yes**, we can preserve the user’s custom threshold values **across election type changes** by using `st.session_state`.
+
+---
+
+## ✅ How to Make Margin Thresholds Persist
+
+Right now, every time the user switches election type (e.g., from "President" to "State House"), Streamlit re-runs the whole script, resetting sliders back to their default values.
+
+To fix this, we’ll store the selected thresholds in `st.session_state`.
+
+---
+
+### ✅ Step-by-Step Fix
+
+#### 🧠 1. Initialize the threshold defaults only once
+
+Place this near the **top of your app**, after setting the page config:
+
+```python
+if "tilt_max" not in st.session_state:
+    st.session_state["tilt_max"] = 3
+if "lean_max" not in st.session_state:
+    st.session_state["lean_max"] = 7
+if "likely_max" not in st.session_state:
+    st.session_state["likely_max"] = 12
+```
+
+---
+
+#### 🎛️ 2. Use session-based sliders
+
+Replace this:
+
+```python
+tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3)
+```
+
+With this:
+
+```python
+st.session_state["tilt_max"] = st.slider(
+    "Tilt Margin Max (%)", 1, 5, st.session_state["tilt_max"], key="slider_tilt"
+)
+st.session_state["lean_max"] = st.slider(
+    "Lean Margin Max (%)", 5, 10, st.session_state["lean_max"], key="slider_lean"
+)
+st.session_state["likely_max"] = st.slider(
+    "Likely Margin Max (%)", 10, 20, st.session_state["likely_max"], key="slider_likely"
+)
+```
+
+> These use the **current stored values** as the default, and then immediately update the stored values when changed.
+
+---
+
+#### 🧪 3. Pass them to the rating function like this:
+
+```python
+df_display = update_df_with_custom_ratings(
+    df_display,
+    st.session_state["tilt_max"],
+    st.session_state["lean_max"],
+    st.session_state["likely_max"]
+)
+```
+
+---
+
+### ✅ Result:
+- Changing election types won’t reset sliders
+- User custom settings persist across views
+- No extra logic needed in each generator — the session state handles it
+
+---
+
+Want me to summarize this into a single patch block you can drop right into your `main.py`?

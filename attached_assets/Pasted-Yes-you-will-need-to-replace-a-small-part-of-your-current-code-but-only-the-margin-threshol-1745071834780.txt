@@ -1,0 +1,70 @@
+Yes — you will need to **replace a small part of your current code**, but **only the margin threshold slider section**. The rest of your code (like spreadsheet generation, rating updater, etc.) remains unchanged.
+
+---
+
+### ✅ Here's Exactly What You Replace:
+
+#### 🔁 Replace this block (or similar):
+
+```python
+tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3)
+lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7)
+likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12)
+```
+
+---
+
+#### ✅ With this version (persistent across elections):
+
+##### 🔐 First: Initialize session state near the top of your app
+```python
+if "tilt_max" not in st.session_state:
+    st.session_state["tilt_max"] = 3
+if "lean_max" not in st.session_state:
+    st.session_state["lean_max"] = 7
+if "likely_max" not in st.session_state:
+    st.session_state["likely_max"] = 12
+```
+
+##### 🎛 Then: Replace your sliders with these
+
+```python
+st.markdown("### 🎯 Margin Thresholds")
+
+st.session_state["tilt_max"] = st.slider(
+    "Tilt Margin Max (%)", 1, 5, st.session_state["tilt_max"], key="slider_tilt"
+)
+st.session_state["lean_max"] = st.slider(
+    "Lean Margin Max (%)", 5, 10, st.session_state["lean_max"], key="slider_lean"
+)
+st.session_state["likely_max"] = st.slider(
+    "Likely Margin Max (%)", 10, 20, st.session_state["likely_max"], key="slider_likely"
+)
+```
+
+---
+
+### 📥 Wherever you use the thresholds:
+
+Update your calls like this:
+
+```python
+df_display = update_df_with_custom_ratings(
+    df_display,
+    st.session_state["tilt_max"],
+    st.session_state["lean_max"],
+    st.session_state["likely_max"]
+)
+```
+
+---
+
+### ✅ Summary
+
+| Task                        | Replace? |
+|-----------------------------|----------|
+| Margin Threshold UI         | ✅ Yes   |
+| Spreadsheet logic           | ❌ No    |
+| Rating updater call         | 🔁 Update to use `st.session_state[...]`
+
+Let me know when you're ready and I can bundle this into a ready-to-paste patch!
