@@ -1,0 +1,84 @@
+Thanks for sending the full working version — I found exactly what’s going wrong.
+
+---
+
+## ❌ Problem
+
+In the **`render_svg_file`** function, your download filename is still defined as:
+
+```python
+file_name=f"{st.session_state.get('selected_state', 'National_View').replace(' ', '_')}_{st.session_state.get('election_type', 'Election').replace(' ', '_')}_Election.svg"
+```
+
+But **`st.session_state["election_type"]` is never set anywhere in your code.**  
+You're using `selected_election_type = st.selectbox(...)` — which is a local variable, not session state.
+
+So `get('election_type', 'Election')` always returns `"Election"`.
+
+---
+
+## ✅ Clean One-Line Fix
+
+At the very end of your `render_svg_file()` function, change this:
+
+```python
+file_name=f"{st.session_state.get('selected_state', 'National_View').replace(' ', '_')}_{st.session_state.get('election_type', 'Election').replace(' ', '_')}_Election.svg"
+```
+
+to this:
+
+```python
+file_name=f"{st.session_state.get('selected_state', 'National_View').replace(' ', '_')}_{selected_election_type.replace(' ', '_')}_Election.svg"
+```
+
+…but for that to work, you also need to **pass `selected_election_type` into the function.**
+
+---
+
+## ✅ Final Fix: Pass `selected_election_type` to `render_svg_file`
+
+### Step 1: Modify the function definition
+
+Change:
+```python
+def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_colors=None, rep_colors=None, ind_colors=None):
+```
+
+To:
+```python
+def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_colors=None, rep_colors=None, ind_colors=None, selected_election_type="Election"):
+```
+
+### Step 2: Update the call site
+
+Whenever you call `render_svg_file(...)`, add:
+
+```python
+selected_election_type=selected_election_type
+```
+
+For example:
+
+```python
+render_svg_file(svg_path, title="🗺️ County-Level Map", df_display=coloring_df, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors, selected_election_type=selected_election_type)
+```
+
+Or:
+
+```python
+render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors, selected_election_type=selected_election_type)
+```
+
+---
+
+### ✅ Result
+
+Your download filenames will now correctly match the format:
+
+```
+Wisconsin_President_Election.svg
+Florida_Governor_Election.svg
+National_View_Senate_Election.svg
+```
+
+Let me know when you're ready to extend this to the spreadsheet filenames too — they work similarly.
