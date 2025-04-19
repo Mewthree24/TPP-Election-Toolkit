@@ -346,19 +346,7 @@ if st.session_state["election_data"]:
         if "selected_state" not in st.session_state:
             st.session_state.selected_state = "National View"
 
-        # Check for clicked state from localStorage
-        key_base = f"{selected_election_type}_{hash(str(st.session_state.get('selected_state', '')))}"
-        clicked_state = st_javascript("""
-            const stored = localStorage.getItem("clicked_state");
-            if (stored) {
-                localStorage.removeItem("clicked_state");
-                return stored;
-            }
-            return null;
-        """, key=f"check_clicked_state_{key_base}")
-
-        if clicked_state:
-            st.session_state.selected_state = clicked_state
+        
             st.experimental_rerun()
         election_key = election_types[selected_election_type]
         election_data = st.session_state["election_data"][election_key]
