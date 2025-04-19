@@ -6,6 +6,7 @@ from openpyxl.styles import Font, Alignment
 from io import BytesIO
 from collections import defaultdict
 import os
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
@@ -33,6 +34,33 @@ if "election_data" not in st.session_state:
     st.session_state["election_data"] = {}
 
 st.title("🗳️ TPP Election Toolkit")
+
+# Add SVG Viewer Test
+st.subheader("🖼️ SVG Viewer Test")
+
+# Example file to render (change this to test other states)
+test_svg_file = os.path.join("SVG", "wi.svg")
+
+# Load the SVG content
+try:
+    with open(test_svg_file, "r", encoding="utf-8") as f:
+        svg_content = f.read()
+
+    # Render SVG in Streamlit
+    components.html(
+        f"""
+        <div style="display: flex; justify-content: center;">
+            <div style="max-width: 800px; width: 100%;">
+                {svg_content}
+            </div>
+        </div>
+        """,
+        height=600,
+        scrolling=False
+    )
+    st.success("✅ SVG rendered successfully.")
+except Exception as e:
+    st.error(f"❌ Failed to load or render SVG: {e}")
 
 # Upload file
 uploaded_file = st.file_uploader("Upload your savefile", type=["json"])
@@ -602,7 +630,6 @@ if st.session_state["election_data"]:
                                 if p == winner_party:
                                     electoral_totals[p] += candidate_ev
                                 col += 3
-
 
                             ws.cell(row=row_idx, column=col, value=f"{margin:,}")
                             ws.cell(row=row_idx, column=col + 1, value=f"{margin_pct:.2f}%")
