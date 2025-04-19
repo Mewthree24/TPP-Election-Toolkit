@@ -310,7 +310,11 @@ uploaded_file = st.file_uploader("Upload your savefile", type=["json"])
 if uploaded_file:
     try:
         raw_data = uploaded_file.read()
-        data = json.loads(raw_data)
+        try:
+            data = json.loads(raw_data)
+        except json.JSONDecodeError as e:
+            st.error(f"Invalid JSON file: {str(e)}")
+            return
 
         wanted_keys = [
             "electNightSB", "electNightCC", "electNightM",
@@ -318,13 +322,16 @@ if uploaded_file:
             "electNightUSH", "electNightUSS", "electNightP"
         ]
 
-        extracted_data = {k: data[k] for k in wanted_keys if k in data}
-        st.session_state["election_data"] = extracted_data
-
-        st.success("Election data extracted successfully.")
-
-    except Exception as e:
-        st.error(f"Failed to load file: {e}")
+        try:
+            extracted_data = {k: data[k] for k in wanted_keys if k in data}
+            if not any(k in data for k in wanted_keys):
+                st.warning("No election data found in file. Expected at least one of: " + ", ".join(wanted_keys))
+                return
+            
+            st.session_state["election_data"] = extracted_data
+            st.success("Election data extracted successfully.")
+        except Exception as e:
+            st.error(f"Failed to process election data: {str(e)}")
 
 # Initialize session state for selected state
 if "selected_state" not in st.session_state:
