@@ -1,0 +1,87 @@
+Great work getting everything to this point. From your latest update, I can see the **Presidential National Map** still isn't displaying colors even though the spreadsheet is rendering and the correct SVG (`presidential.svg`) is loaded. Here's why and how to fix it:
+
+---
+
+### ✅ THE CORE ISSUE
+
+You're correctly passing the `df_display` to `render_svg_file()`:
+
+```python
+render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
+```
+
+**But:**  
+In your `build_state_color_map()` function (which `render_svg_file()` calls), the `State` column is expected to contain **2-letter codes** (like `CA`, `TX`, `FL`).  
+
+However, your `df_display` contains **full state names** (like `California`, `Texas`, `Florida`).
+
+---
+
+### ✅ THE FIX
+
+You should normalize the `State` column before building the color map. Here's what to do:
+
+---
+
+### 🔧 FIX IN `build_state_color_map()`
+
+Update the function like this:
+
+```python
+def build_state_color_map(df, dem_colors, rep_colors, ind_colors):
+    color_map = {}
+    rating_to_color = {
+        f"{strength} Democratic": dem_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    }
+    rating_to_color.update({
+        f"{strength} Republican": rep_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    })
+    rating_to_color.update({
+        f"{strength} Independent": ind_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    })
+
+    # Create a reverse mapping of full names to codes
+    state_name_to_code = {
+        "Alabama": "AL", "Alaska": "AK", "Arizona": "AZ", "Arkansas": "AR",
+        "California": "CA", "Colorado": "CO", "Connecticut": "CT", "Delaware": "DE",
+        "Florida": "FL", "Georgia": "GA", "Hawaii": "HI", "Idaho": "ID",
+        "Illinois": "IL", "Indiana": "IN", "Iowa": "IA", "Kansas": "KS",
+        "Kentucky": "KY", "Louisiana": "LA", "Maine": "ME", "Maryland": "MD",
+        "Massachusetts": "MA", "Michigan": "MI", "Minnesota": "MN", "Mississippi": "MS",
+        "Missouri": "MO", "Montana": "MT", "Nebraska": "NE", "Nevada": "NV",
+        "New Hampshire": "NH", "New Jersey": "NJ", "New Mexico": "NM", "New York": "NY",
+        "North Carolina": "NC", "North Dakota": "ND", "Ohio": "OH", "Oklahoma": "OK",
+        "Oregon": "OR", "Pennsylvania": "PA", "Rhode Island": "RI", "South Carolina": "SC",
+        "South Dakota": "SD", "Tennessee": "TN", "Texas": "TX", "Utah": "UT",
+        "Vermont": "VT", "Virginia": "VA", "Washington": "WA", "West Virginia": "WV",
+        "Wisconsin": "WI", "Wyoming": "WY", "District of Columbia": "DC"
+    }
+
+    for _, row in df.iterrows():
+        state = row.get("State", "")
+        rating = row.get("Rating", "")
+
+        if pd.isna(state) or pd.isna(rating):
+            continue
+
+        # Normalize state to 2-letter code
+        normalized = state.strip().upper()
+        if len(normalized) > 2:  # convert full name to code
+            normalized = state_name_to_code.get(normalized, "")
+
+        color = rating_to_color.get(rating.strip(), "#cccccc")
+        color_map[normalized] = color
+
+    return color_map
+```
+
+---
+
+### 🔁 AFTER THAT
+
+Once you've applied that fix, the **Presidential National Map** should color in correctly just like your county-level ones did.
+
+Let me know when you're ready to move on to fixing the Senate and Governor maps — they'll follow a very similar process!
