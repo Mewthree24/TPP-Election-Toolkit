@@ -101,7 +101,6 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         # Apply coloring if we have display data and color schemes
         if df_display is not None and dem_colors and rep_colors and ind_colors:
             color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
-            st.write("Color Map (first 5 entries):", dict(list(color_map.items())[:5]))
             svg_data = apply_county_colors_to_svg(svg_data, color_map)
 
         encoded = base64.b64encode(svg_data.encode()).decode()
@@ -717,16 +716,8 @@ if st.session_state["election_data"]:
                         svg_filename = f"{state_code.lower()}.svg"
                         svg_path = os.path.join("SVG", svg_filename)
                         if os.path.exists(svg_path):
-                            # Create coloring dataframe with County and Rating
-                            coloring_df = pd.DataFrame({
-                                'County': [county['name'] for county in counties],
-                                'Rating': [rating_label for county in counties for cands in [county.get('cands', [])] for cand in cands for rating_label in [f"{'Tilt' if margin_pct < 1 else 'Lean' if margin_pct < 5 else 'Likely' if margin_pct < 10 else 'Safe'} {party_labels.get(cand['party'], cand['party'])}"
-                                    if cand == sorted(county.get('cands', []), key=lambda x: x['votes'], reverse=True)[0]
-                                    else None]
-                                if rating_label is not None
-                            ]})
-                            st.write("🧪 Coloring from counties:", coloring_df.head())
-
+                            # Extract County and Rating from displayed df
+                            coloring_df = df_display[["County", "Rating"]].copy()
                             render_svg_file(svg_path, title="🗺️ County-Level Map", df_display=coloring_df, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
                         else:
                             st.warning(f"❌ No county-level map found for {state_code}")
