@@ -1,0 +1,94 @@
+You're almost there — the map **looks clickable**, but the issue is that the SVG click handler *sends a message* to the browser, and **nothing is set up to actually receive or process that message inside Streamlit**. Let's break it down:
+
+---
+
+### ✅ What’s Already Working
+
+In `render_svg_file(...)`, this part of the code is being injected into the SVG wrapper:
+
+```html
+<script>
+window.addEventListener('message', function(e) {
+    if (e.data.type === 'selectState') {
+        const selectBox = window.parent.document.querySelector('select[aria-label="Select State"]');
+        if (selectBox) {
+            selectBox.value = e.data.state;
+            selectBox.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+});
+</script>
+```
+
+This means when you click on a state, it sends the `state` name back to the page expecting it to change the dropdown value of the state selector. **In a normal HTML page, that would work**, but **Streamlit runs in an iframe**, and so **`window.parent.document.querySelector` is sandboxed and blocked**.
+
+---
+
+### 🧠 What Needs to Happen Instead
+
+You can’t directly change Streamlit’s UI DOM via JS. But Streamlit offers **Python ↔️ JS communication** using:
+
+- `st.experimental_data_editor()` (not helpful here)
+- **`streamlit_javascript` component** (3rd-party workaround)
+- **streamlit-frontend message bridging workaround** (JS inside iframe cannot change Python state directly)
+
+So you need to **hook the message into a component** that **calls Python code**, e.g., using `streamlit_js_eval` or a custom Streamlit component.
+
+---
+
+### 🔧 Workable Solution (Use `streamlit_javascript`)
+
+You can install the [`streamlit-javascript`](https://github.com/volcano-squid/streamlit-javascript) component:
+
+```bash
+pip install streamlit-javascript
+```
+
+Then you can bridge the message like this:
+
+#### 1. Add this to your imports
+```python
+from streamlit_javascript import st_javascript
+```
+
+#### 2. At the top of your app (after rendering the map), capture JS state:
+```python
+clicked_state = st_javascript("""
+    window.clicked_state = null;
+    window.addEventListener('message', function(e) {
+        if (e.data.type === 'selectState') {
+            window.clicked_state = e.data.state;
+        }
+    });
+    return window.clicked_state;
+""")
+```
+
+#### 3. If `clicked_state` is valid, update Streamlit dropdown
+```python
+if clicked_state:
+    st.session_state["selected_state"] = clicked_state
+    st.experimental_rerun()
+```
+
+And modify your `st.selectbox(...)` like this:
+```python
+selected_state = st.selectbox(
+    "Select State",
+    state_options,
+    index=state_options.index(st.session_state.get("selected_state", "National View")),
+    key="select_state_box"
+)
+```
+
+---
+
+### 🧪 End Result
+
+- Map becomes clickable
+- Click → sets JavaScript state → passed to Streamlit Python → updates state selector
+- Automatically re-renders with new state
+
+---
+
+Would you like me to implement this in your existing code or help with the `streamlit_javascript` setup?
