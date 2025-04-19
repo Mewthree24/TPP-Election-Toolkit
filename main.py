@@ -332,13 +332,12 @@ if uploaded_file:
             st.success("Election data extracted successfully.")
         except Exception as e:
             st.error(f"Failed to process election data: {str(e)}")
+    except Exception as e:
+        st.error(f"Failed to process election data: {str(e)}")
 
 # Initialize session state for selected state
 if "selected_state" not in st.session_state:
     st.session_state.selected_state = "National View"
-
-except Exception as e:
-        st.error(f"Failed to process election data: {str(e)}")
 
 if st.session_state["election_data"]:
 
