@@ -19,16 +19,16 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
     color_map = {}
     
     for _, row in df.iterrows():
-        county = str(row["County"]).strip()
-        rating = str(row["Rating"]).strip()
+        county = str(row.get("County", "")).strip()
+        rating = str(row.get("Rating", "")).strip()
         
         if not county or not rating:
             continue
             
         parts = rating.split()
         if len(parts) >= 2:
-            strength = parts[0]  
-            party = parts[1]     
+            strength = parts[0]
+            party = parts[-1]  # Take last word as party
             
             color = "#cccccc"  # Default color
             if party == "Democratic":
