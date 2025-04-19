@@ -46,22 +46,22 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
 def apply_county_colors_to_svg(svg_text, color_map):
     def replace_fill(match):
         element = match.group(0)
-        county_id = match.group(1)
+        county_id = match.group(1).lower()
 
         color = color_map.get(county_id)
-        if not color:
-            return element  # leave untouched
+        if color:
+            st.write(f"✅ Coloring: {county_id} → {color}")
+            # If it already has a fill attribute, replace it
+            if 'fill="' in element:
+                return re.sub(r'fill="[^"]*"', f'fill="{color}"', element)
+            else:
+                # Inject fill directly after the id attribute
+                return element.replace(f'id="{county_id}"', f'id="{county_id}" fill="{color}"')
+        return element
 
-        # Replace or inject fill attribute
-        if 'fill=' in element:
-            return re.sub(r'fill="[^"]*"', f'fill="{color}"', element)
-        else:
-            return element.replace('id="{}"'.format(county_id), f'id="{county_id}" fill="{color}"')
-
-    # Match elements with county id (assumes paths or groups have id="..."):
-    pattern = r'<[^>]+id="([^"]+)"[^>]*>'
-    colored_svg = re.sub(pattern, replace_fill, svg_text)
-
+    # Only target elements with an id attribute
+    colored_svg = re.sub(r'<[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
+    st.code(colored_svg[:1000])  # Show first 1000 characters for debugging
     return colored_svg
 
 
