@@ -1,0 +1,130 @@
+Thank you — I’ve reviewed the full, current version of `main.py`, and here's a clear breakdown of the issue and the exact fix.
+
+---
+
+## 🔍 Problem Summary
+
+You're clicking on states in the **national SVG map**, and:
+- The mouse changes to a pointer ✅
+- The SVG gets embedded correctly ✅
+- You *expect* it to switch to that state’s view ❌
+
+### But it doesn’t.
+
+This is because:
+
+> `window.parent.document.querySelector('select[aria-label="Select State"]')` doesn't work — the Streamlit iframe doesn't expose the DOM this way.
+
+---
+
+## ✅ The Real Fix: Bridge Clicks via `localStorage` → `st_javascript`
+
+You **already have** the right idea — but one part of the logic is missing:
+
+- You're adding this inside the iframe:
+  ```js
+  window.parent.postMessage(...)
+  ```
+
+But Streamlit **doesn't let iframe JS modify parent DOM** directly.
+
+Instead, you should:
+1. Inject `onclick="localStorage.setItem('clicked_state', 'West Virginia')"` into each state
+2. Poll for that value in `st_javascript()`
+3. Trigger the rerun with that `clicked_state`
+
+---
+
+## 🧠 Here's Exactly What You Do
+
+---
+
+### ✅ 1. Modify `add_click_handler()` to set `localStorage` directly
+
+In your `render_svg_file()` function, find this part:
+
+```python
+def add_click_handler(match):
+    tag = match.group(0)
+    state_code = match.group(2)
+    state_name = state_code_to_name.get(state_code.upper(), "")
+    if state_name:
+        onclick = f'onclick="localStorage.setItem(\'clicked_state\', \'{state_name}\')"'
+        if 'style="' in tag:
+            tag = tag.replace('style="', f'{onclick} style="cursor: pointer; ')
+        else:
+            tag = tag.replace('>', f' {onclick} style="cursor: pointer;">')
+    return tag
+```
+
+This is **correct** — you do **not** need to use `postMessage`.
+
+---
+
+### ✅ 2. Remove all `window.postMessage` blocks
+
+In the HTML injected inside `render_svg_file()`, **remove** this block:
+
+```html
+<script>
+window.addEventListener('message', function(e) {
+    if (e.data.type === 'selectState') {
+        const selectBox = window.parent.document.querySelector(...);
+        ...
+    }
+});
+</script>
+```
+
+You don’t need it anymore. It won’t work in Streamlit’s sandbox anyway.
+
+---
+
+### ✅ 3. Add persistent polling to check for the click
+
+Somewhere early in the Streamlit file (e.g., after `st.set_page_config()`), add this logic:
+
+```python
+clicked_state = st_javascript("""
+    const clicked = localStorage.getItem('clicked_state');
+    if (clicked) {
+        localStorage.removeItem('clicked_state');
+    }
+    return clicked;
+""")
+
+if clicked_state:
+    st.session_state["selected_state"] = clicked_state
+    st.experimental_rerun()
+```
+
+This ensures:  
+✔️ If the user clicks a state  
+✔️ It saves in `localStorage`  
+✔️ Streamlit sees it  
+✔️ And reruns to show the county view for that state
+
+---
+
+### ✅ 4. Double-check this key line in `selected_state` selectbox:
+
+```python
+index=state_options.index(st.session_state.get("selected_state", "National View")),
+```
+
+This should already trigger your logic to display the correct county view when the state is selected.
+
+---
+
+## ✅ Summary
+
+| Step | What to Change |
+|------|----------------|
+| 1 | `onclick="localStorage.setItem(...)"` in SVG — ✅ already there |
+| 2 | Delete all `window.parent.postMessage` logic from your injected HTML |
+| 3 | Add `st_javascript(...)` to read `clicked_state` from `localStorage` |
+| 4 | Assign to `st.session_state["selected_state"]` and call `st.experimental_rerun()` |
+
+---
+
+Would you like me to cleanly patch this into your current code and return a working version of the function?
