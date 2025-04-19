@@ -1,0 +1,102 @@
+Thanks for sharing the updated code. The core issue you're experiencing is this:
+
+### 🔍 **Clicking a state doesn't trigger the selection logic**
+Even though the mouse hover shows the pointer (✅), clicking the state doesn’t change the selection (❌). That means **JavaScript is running**, but **it’s not communicating correctly back to Streamlit**.
+
+Let’s walk through what’s currently happening and what needs fixing:
+
+---
+
+## ✅ What's Working
+
+- **SVG is rendering** in the browser.
+- **JavaScript `postMessage`** is firing correctly when a state is clicked.
+- **`<object>` tag** inside Streamlit renders the SVG file and handles visuals.
+
+---
+
+## ❌ What’s Broken
+
+- The `postMessage` is being fired **within the iframe created by Streamlit’s `components.html(...)`**, but the message **isn’t being received** by your `st_javascript()` logic.
+
+### Why?
+Because both the `postMessage` sender and receiver are now **inside the same iframe sandbox**, and `window.parent.document.querySelector(...)` won’t target elements outside the iframe scope due to security sandboxing.
+
+---
+
+## ✅ The Fix
+
+You need to **use a persistent polling loop** or use **JavaScript's `localStorage` as a bridge** between the HTML map and Streamlit, like so:
+
+### ✅ Step-by-step Fix
+
+#### 1. Inside `render_svg_file()` → Replace the `postMessage` logic with `localStorage`:
+Update this part of the map rendering code:
+
+```javascript
+window.addEventListener('message', function(e) {
+    if (e.data.type === 'selectState') {
+        localStorage.setItem('clicked_state', e.data.state);
+    }
+});
+```
+
+#### 2. Modify the state `onclick` handler in your SVG like this:
+
+```javascript
+onclick="localStorage.setItem('clicked_state', 'West Virginia')"
+```
+
+This ensures clicking any state writes the value to `localStorage`, even inside the iframe.
+
+You already have a function that modifies the SVG to add click handlers:
+
+```python
+def add_click_handler(match):
+    ...
+    onclick = f'onclick="localStorage.setItem(\'clicked_state\', \'{state_name}\')"'
+```
+
+✅ Keep this!
+
+---
+
+#### 3. In your main script (early in the Streamlit pipeline), **add a JavaScript polling mechanism**:
+
+```python
+clicked_state = st_javascript("""
+    const clicked = localStorage.getItem('clicked_state');
+    if (clicked) {
+        localStorage.removeItem('clicked_state');
+    }
+    return clicked;
+""")
+```
+
+This will:
+- Read the selected state from localStorage.
+- Immediately remove it (so it doesn’t trigger every run).
+- Pass it into Python as `clicked_state`.
+
+---
+
+#### 4. Then in Python:
+
+```python
+if clicked_state:
+    st.session_state["selected_state"] = clicked_state
+    st.experimental_rerun()
+```
+
+---
+
+### 🔁 Optional Bonus: Make it feel responsive
+You could add `st_autorefresh(interval=1000)` if you want auto-checking every second instead of rerunning on state change.
+
+---
+
+## ✅ Summary
+
+You’re almost there — just swap `postMessage` with `localStorage.setItem(...)` for the `onclick` inside the SVG and then poll for `clicked_state` in `st_javascript`.
+
+Would you like me to help cleanly implement this into your current `main.py` for you?
