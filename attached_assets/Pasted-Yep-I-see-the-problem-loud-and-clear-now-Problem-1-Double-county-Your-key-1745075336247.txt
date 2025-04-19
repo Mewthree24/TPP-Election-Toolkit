@@ -1,0 +1,82 @@
+Yep — I see the problem loud and clear now:
+
+---
+
+### ❌ Problem #1: Double “_county”  
+Your keys in the color map are like:
+
+```
+"alameda_county_county"
+```
+
+That **double `_county`** is breaking the link between the county name and the SVG `<path>` IDs (which are things like `alameda_county`).
+
+---
+
+### ✅ Fix:
+When building your `color_map` dictionary from the spreadsheet, the transformation logic needs to **stop** appending “_county” if it’s already part of the name.
+
+Change this line (or whatever is being used):
+
+```python
+county_id = county_name.lower().replace(" ", "_") + "_county"
+```
+
+To something like:
+
+```python
+county_id = county_name.lower().replace(" ", "_")
+if not county_id.endswith("_county"):
+    county_id += "_county"
+```
+
+Or more elegantly:
+
+```python
+county_id = county_name.lower().replace(" ", "_").removesuffix("_county") + "_county"
+```
+
+This ensures you always end with a single `_county`.
+
+---
+
+### ❌ Problem #2: Rating Still Wrong  
+If `"Alameda County"` is **Safe Democratic** in the spreadsheet but shows up as **Likely Republican**, that means:
+
+- You are still **not reading the `Rating` column from the spreadsheet** — you're recalculating.
+- You **might be passing in outdated `df` data**, or not reading from the same file shown on screen.
+
+---
+
+### ✅ Fix:
+Ensure you're doing something like this:
+
+```python
+for _, row in df.iterrows():
+    county_id = row["County"].lower().replace(" ", "_").removesuffix("_county") + "_county"
+    rating = row["Rating"]  # <- use this!
+
+    color = rating_to_color.get(rating, "#cccccc")
+    color_map[county_id] = color
+```
+
+And `rating_to_color` should look like:
+
+```python
+rating_to_color = {
+    "Safe Democratic": blue_safe,
+    "Likely Democratic": blue_likely,
+    "Lean Democratic": blue_lean,
+    "Tilt Democratic": blue_tilt,
+    "Safe Republican": red_safe,
+    "Likely Republican": red_likely,
+    "Lean Republican": red_lean,
+    "Tilt Republican": red_tilt,
+    "Safe Independent": ind_safe,
+    ...
+}
+```
+
+---
+
+Would you like me to edit that block of code directly in your `main.py` (or canvas)?
