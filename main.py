@@ -220,10 +220,10 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             f"""
             <div style="width: 100%; display: flex; justify-content: center; align-items: center;">
                 <div style="width: 100%; max-width: 1200px; margin: 0 auto;">
-                    <div style="position: relative; width: 100%; padding-bottom: 100%;">
+                    <div style="position: relative; width: 100%; padding-bottom: 62%;">
                         <object data="data:image/svg+xml;base64,{encoded}"
-                                type="image/svg+xml"
-                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
+                                type="image/svg+xml" 
+                                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; max-height: 700px;">
                         </object>
                     </div>
                 </div>
@@ -349,7 +349,7 @@ if st.session_state["election_data"]:
 
     if available_election_types:
         selected_election_type = st.selectbox("Select Election Type", available_election_types)
-        
+
         # Initialize state selection if not present
         if "selected_state" not in st.session_state:
             st.session_state.selected_state = "National View"
