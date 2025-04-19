@@ -218,13 +218,11 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
 
         components.html(
             f"""
-            <div style="width: 100%; max-width: 1200px; margin: 0 auto;">
-                <div style="position: relative; width: 100%; padding-bottom: 75%;">
-                    <object data="data:image/svg+xml;base64,{encoded}"
-                            type="image/svg+xml" 
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
-                    </object>
-                </div>
+            <div style="width: 100%; margin: 0 auto;">
+                <object data="data:image/svg+xml;base64,{encoded}"
+                        type="image/svg+xml" 
+                        style="width: 100%; height: auto; max-height: 700px; display: block;">
+                </object>
             </div>
             """,
             height=700,
@@ -339,12 +337,12 @@ if st.session_state["election_data"]:
 
     if available_election_types:
         selected_election_type = st.selectbox("Select Election Type", available_election_types)
-        
+
         # Initialize state selection if not present
         if "selected_state" not in st.session_state:
             st.session_state.selected_state = "National View"
 
-        
+
             st.experimental_rerun()
         election_key = election_types[selected_election_type]
         election_data = st.session_state["election_data"][election_key]
