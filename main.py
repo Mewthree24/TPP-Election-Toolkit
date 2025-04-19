@@ -12,43 +12,30 @@ st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
 def render_svg_file(svg_path: str, title: str = None):
     import streamlit.components.v1 as components
-    from bs4 import BeautifulSoup
+    import base64
     import os
 
     try:
         with open(svg_path, "r", encoding="utf-8") as f:
-            svg_raw = f.read()
+            svg_data = f.read()
 
         if title:
             st.subheader(title)
 
-        # Parse SVG with XML parser to extract viewBox
-        soup = BeautifulSoup(svg_raw, "xml")
-        svg_tag = soup.find("svg")
+        encoded = base64.b64encode(svg_data.encode()).decode()
 
-        viewbox = svg_tag.get("viewBox")
-        if viewbox:
-            _, _, width, height = map(float, viewbox.strip().split())
-            ratio = height / width
-        else:
-            ratio = 0.75  # Fallback ratio
-
-        # Calculate height based on a 1000px wide frame
-        pixel_width = 1000
-        pixel_height = int(ratio * pixel_width)
-
-        # Inject SVG in a responsive container
         components.html(
             f"""
             <div style="display: flex; justify-content: center;">
-                <div style="width: 100%; max-width: {pixel_width}px;">
-                    {svg_raw}
-                </div>
+                <object type="image/svg+xml" data="data:image/svg+xml;base64,{encoded}" 
+                    style="width: 100%; max-width: 1000px; height: auto; display: block;">
+                </object>
             </div>
             """,
-            height=pixel_height + 40,  # Add buffer for label
+            height=800,  # Prevent clipping but allow scaling
             scrolling=False
         )
+
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
 
     except Exception as e:
@@ -650,7 +637,7 @@ if st.session_state["election_data"]:
                                 candidate_name = party_to_candidate[p]
 
                                 candidate_ev = next((c.get("electoralVotes", 0) for c in entry.get("cands", []) if c["name"] == candidate_name), 0)
-                                display_ev = candidate_ev if p == winner_party else "—"
+                                display_ev = candidate_ev if p == winner_party else ""—"
 
                                 ws.cell(row=row_idx, column=col, value=f"{v:,}")                      # Raw votes
                                 ws.cell(row=row_idx, column=col + 1, value=f"{pct:.2f}%")            # %
@@ -937,6 +924,7 @@ if st.session_state["election_data"]:
                     df_display = pd.DataFrame(data_rows, columns=header_row)
                     # Convert all numeric-like strings to numeric values
                     df_display = df_display.apply(pd.to_numeric, errors='ignore')
+
                     st.dataframe(df_display, use_container_width=True)
 
                     st.download_button(
@@ -946,6 +934,17 @@ if st.session_state["election_data"]:
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         key=f"{selected_election_type.lower().replace(' ', '_')}_national_view"
                     )
+
+                    # === National View Maps ===
+                    if selected_state == "National View":
+                        if selected_election_type == "President":
+                            pres_path = os.path.join("SVG", "presidential.svg")
+                            if os.path.exists(pres_path):
+                                render_svg_file(pres_path, title="🗺️ Presidential National Map")
+                        elif selected_election_type in ["Senate", "Governor"]:
+                            states_path = os.path.join("SVG", "states.svg")
+                            if os.path.exists(states_path):
+                                render_svg_file(states_path, title=f"🗺️ {selected_election_type} National Map")
 
 
         # === State Legislature National View Spreadsheet Generator ===
