@@ -1,0 +1,62 @@
+✅ The Best Working Fix
+Instead of using postMessage, we will:
+
+Change the onclick handlers inside the SVG to use localStorage.setItem(...) directly.
+
+Use st_javascript to poll localStorage continuously.
+
+Use st.experimental_rerun() only if the state actually changed.
+
+✍️ Step-by-Step Fix
+1. ✅ Replace onclick in your render_svg_file() with this:
+Update the add_click_handler() function as follows:
+
+python
+Copy
+Edit
+def add_click_handler(match):
+    tag = match.group(0)
+    state_code = match.group(2)
+    state_name = state_code_to_name.get(state_code.upper(), "")
+    if state_name:
+        onclick = f'onclick="localStorage.setItem(\'clicked_state\', \'{state_name}\'); location.reload()"'
+        if 'style="' in tag:
+            tag = tag.replace('style="', f'{onclick} style="cursor: pointer; ')
+        else:
+            tag = tag.replace('>', f' {onclick} style="cursor: pointer;">')
+    return tag
+🔁 We’re now directly storing clicked_state and reloading the page — this makes sure Streamlit will re-execute the script from scratch and pick up the new state.
+
+2. ✅ Remove postMessage Listeners
+You can delete this entire block from your main file — it’s now unnecessary and does nothing:
+
+python
+Copy
+Edit
+clicked_state = st_javascript("""
+    window.clicked_state = null;
+    window.addEventListener('message', function(e) {
+        if (e.data.type === 'selectState') {
+            localStorage.setItem('clicked_state', e.data.state);
+        }
+    });
+    return localStorage.getItem('clicked_state');
+""")
+3. ✅ Add This Just After set_page_config() to Handle Clicked States
+Add this right at the top, after setting up state_code_to_name:
+
+python
+Copy
+Edit
+clicked_state = st_javascript("""
+    const stored = localStorage.getItem("clicked_state");
+    if (stored) {
+        localStorage.removeItem("clicked_state");
+        return stored;
+    }
+    return null;
+""")
+
+if clicked_state and clicked_state in state_code_to_name.values():
+    st.session_state["selected_state"] = clicked_state
+    st.experimental_rerun()
