@@ -12,6 +12,7 @@ st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
 def render_svg_file(svg_path: str, title: str = None):
     import streamlit.components.v1 as components
+    from bs4 import BeautifulSoup
 
     try:
         with open(svg_path, "r", encoding="utf-8") as f:
@@ -20,15 +21,16 @@ def render_svg_file(svg_path: str, title: str = None):
         if title:
             st.subheader(title)
 
+        # Let SVG control its own sizing
         components.html(
             f"""
-            <div style="position: relative; width: 100%; padding-bottom: 80%; max-width: 1000px; margin: auto;">
-                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+            <div style="display: flex; justify-content: center;">
+                <div style="max-width: 1000px; width: 100%;">
                     {svg_raw}
                 </div>
             </div>
             """,
-            height=800,
+            height=700,
             scrolling=False
         )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
