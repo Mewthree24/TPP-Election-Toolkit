@@ -33,8 +33,8 @@ def render_svg_file(svg_path: str, title: str = None):
         components.html(
             f"""
             <div style="display: flex; justify-content: center;">
-                <div style="width: 100%; max-width: 1000px;">
-                    <div style="background-color: black; padding: 10px;">
+                <div style="width: 100%; max-width: 800px;">
+                    <div style="background-color: black; padding: 5px;">
                         <svg width="{width}" height="{height}" viewBox="{viewbox}" 
                              style="width: 100%; height: auto;" preserveAspectRatio="xMidYMid meet">
                             {svg_inner}
@@ -43,7 +43,7 @@ def render_svg_file(svg_path: str, title: str = None):
                 </div>
             </div>
             """,
-            height=700,
+            height=500,
             scrolling=False
         )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
