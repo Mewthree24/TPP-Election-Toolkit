@@ -887,24 +887,23 @@ if st.session_state["election_data"]:
                             used_names = {}
 
                             for col1, col2 in zip(row1, row2):
-                                    if col1 and col2:
-                                        label = f"{col1} - {col2}"
-                                    elif col1:
-                                        label = str(col1)
-                                    elif col2:
-                                        label = str(col2)
-                                    else:
-                                        label = "Unnamed"
+                                if col1 and col2:
+                                    label = f"{col1} - {col2}"
+                                elif col1:
+                                    label = str(col1)
+                                elif col2:
+                                    label = str(col2)
+                                else:
+                                    label = "Unnamed"
 
-                                    # Ensure uniqueness
-                                    if label in used_names:
-                                        count = used_names[label] + 1
-                                        used_names[label] = count
-                                        label = f"{label} ({count})"
-                                    else:
-                                        used_names[label] = 1
+                                if label in used_names:
+                                    count = used_names[label] + 1
+                                    used_names[label] = count
+                                    label = f"{label} ({count})"
+                                else:
+                                    used_names[label] = 1
 
-                                    header_row.append(label)
+                                header_row.append(label)
 
                         # Use remaining rows as data
                         data_rows = excel_rows[2:]
@@ -1301,14 +1300,16 @@ if st.session_state["election_data"]:
                             elif col2:
                                 label = str(col2)
                             else:
-                                if label in used_names:
-                                count = used_names[label] + 1
-                                used_names[label] = count
-                                label = f"{label} ({count})"
-                            else:
-                                used_names[label] = 1
+                                label = "Unnamed"
 
-                            header_row.append(label)
+                            if label in used_names:
+                                count = used_names[label] + 1
+                                    used_names[label] = count
+                                    label = f"{label} ({count})"
+                                else:
+                                    used_names[label] = 1
+
+                                header_row.append(label)
 
                     data_rows = excel_rows[2:]
                     df_display = pd.DataFrame(data_rows, columns=header_row)
