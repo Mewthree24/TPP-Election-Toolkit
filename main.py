@@ -11,6 +11,9 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
 # === Color Generation Functions ===
+def normalize_county_id(name):
+    return name.lower().replace(" ", "_").replace("-", "_").replace(".", "").replace("'", "")
+
 def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
     color_map = {}
     for _, row in df.iterrows():
@@ -29,7 +32,8 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
             else:
                 color = ind_colors.get(strength, "#cccccc")
 
-            county_id = county.lower().replace(" ", "_").replace("-", "_").replace(".", "").replace("'", "")
+            # Only normalize for internal map use
+            county_id = normalize_county_id(county)
             color_map[county_id] = color
         except:
             continue
