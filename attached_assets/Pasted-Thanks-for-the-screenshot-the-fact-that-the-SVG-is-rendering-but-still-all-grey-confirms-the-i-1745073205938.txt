@@ -1,0 +1,88 @@
+Thanks for the screenshot — the fact that the SVG is rendering but **still all grey** confirms the issue is likely one of these:
+
+---
+
+### 🔍 Likely Culprits:
+
+1. **`id=` mismatch** between the SVG and the `color_map` keys  
+2. `fill=` is not being added properly (or it's being overridden later in the SVG)  
+3. `df_display["Rating"]` is missing or not in the expected format  
+4. `County` values aren't being normalized properly for lookups  
+
+---
+
+## ✅ Let’s Debug This Step-by-Step
+
+### ✅ Step 1: Print What You’re Matching
+
+Add this debug block right before coloring:
+
+```python
+import re
+
+# Load SVG text
+with open(svg_path, "r", encoding="utf-8") as f:
+    raw_svg = f.read()
+
+# Find all ids in the SVG
+svg_ids = re.findall(r'id="([^"]+)"', raw_svg)
+st.write("SVG County IDs (sample):", svg_ids[:10])
+
+# Build color map from spreadsheet
+color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
+st.write("Color Map Keys (sample):", list(color_map.keys())[:10])
+```
+
+> This will let you see:
+> - what SVG `id`s you’re trying to match
+> - what keys are in the `color_map` you’re generating
+
+If they don’t match, we’ll know.
+
+---
+
+### ✅ Step 2: Log During Coloring
+
+In your `replace_fill()` function, add:
+
+```python
+def replace_fill(match):
+    element = match.group(0)
+    county_id = match.group(1).lower()
+
+    color = color_map.get(county_id)
+    if color:
+        st.write(f"Coloring county_id: {county_id} with {color}")
+        if 'fill=' in element:
+            return re.sub(r'fill="[^"]*"', f'fill="{color}"', element)
+        else:
+            return element.replace(f'id="{county_id}"', f'id="{county_id}" fill="{color}"')
+    return element
+```
+
+---
+
+### ✅ Step 3: Visual Validation
+
+Once the keys start logging, compare:
+
+| SVG ID             | Spreadsheet County Name | Normalized County ID       |
+|--------------------|--------------------------|-----------------------------|
+| `los_angeles`      | `Los Angeles`           | `los_angeles` ✅            |
+| `san_francisco`    | `San Francisco`         | `san_francisco` ✅          |
+| `de_witt`          | `De Witt`               | `de_witt` ✅                |
+| `prince_of_wales`  | `Prince of Wales-Hyder` | `prince_of_wales_hyder` ✅ |
+
+---
+
+### ✅ Final Fallback Check
+
+If you confirm keys match, but colors still don’t show:
+- Add `!important` to SVG fill rule to override styles:
+```python
+return re.sub(r'fill="[^"]*"', f'fill="{color} !important"', element)
+```
+
+---
+
+Would you like me to send a drop-in debug version of `apply_county_colors_to_svg()` and the SVG reader so we can log everything in one go?
