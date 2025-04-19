@@ -210,7 +210,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             width = int(width_match.group(1)) if width_match else 1000
             height = int(height_match.group(1)) if height_match else 600
             svg_data = re.sub(r'<svg', f'<svg viewBox="0 0 {width} {height}"', svg_data)
-        
+
         # Now do all styling edits in one pass
         svg_display = re.sub(
             r'<svg([^>]*)>',
@@ -685,7 +685,7 @@ if st.session_state["election_data"]:
                     st.markdown("**Republican Shades**")
                     for level in color_levels:
                         color_key = f"rep_{level.lower()}"
-                        st.session_state.color_settings["Republican"][level] = st.color_picker(
+                        st.session_state.colorsettings["Republican"][level] = st.color_picker(
                             f"{level} Rep",
                             value=st.session_state.color_settings["Republican"][level],
                             key=color_key
@@ -913,7 +913,7 @@ if st.session_state["election_data"]:
                         if os.path.exists(svg_path):
                             # Extract County and Rating from displayed df
                             coloring_df = df_display[["County", "Rating"]].copy()
-                            render_svg_file(svg_path, title="🗺️ County-Level Map", df_display=coloring_df, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors, selected_election_type=selected_election_type)
+                            render_svg_file(svg_path, title="🗺️ County-Level Map", df_display=coloring_df, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors, selected_state=selected_state, selected_election_type=selected_election_type)
                         else:
                             st.warning(f"❌ No county-level map found for {state_code}")
                     else:
@@ -1113,7 +1113,7 @@ if st.session_state["election_data"]:
                     # === Presidential National View Map ===
                     pres_path = os.path.join("SVG", "presidential.svg")
                     if os.path.exists(pres_path):
-                        render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
+                        render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors, selected_state=selected_state, selected_election_type=selected_election_type)
                     else:
                         st.warning("No national map found for President.")
                 # === Senate/Governor National View Spreadsheet Generator ===
@@ -1316,11 +1316,11 @@ if st.session_state["election_data"]:
                         if selected_election_type == "President":
                             pres_path = os.path.join("SVG", "presidential.svg")
                             if os.path.exists(pres_path):
-                                render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, indcolors=ind_colors)
+                                render_svg_file(pres_path, title="🗺️ Presidential National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors, selected_state=selected_state, selected_election_type=selected_election_type)
                         elif selected_election_type in ["Senate", "Governor"]:
                             states_path = os.path.join("SVG", "states.svg")
                             if os.path.exists(states_path):
-                                render_svg_file(states_path, title=f"🗺️ {selected_election_type} National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
+                                render_svg_file(states_path, title=f"🗺️ {selected_election_type} National Map", df_display=df_display, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors, selected_state=selected_state, selected_election_type=selected_election_type)
 
 
         # === State Legislature National View Spreadsheet Generator ===
