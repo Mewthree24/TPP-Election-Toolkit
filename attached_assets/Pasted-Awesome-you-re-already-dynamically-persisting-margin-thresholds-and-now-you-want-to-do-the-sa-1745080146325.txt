@@ -1,0 +1,70 @@
+Awesome — you're already dynamically persisting **margin thresholds**, and now you want to do the same for **color selections**, so the color pickers don’t reset when switching between President, Governor, or Senate.
+
+Here’s the clean way to make that happen 👇
+
+---
+
+### ✅ Step-by-Step Plan to Persist Color Settings
+
+#### 1. **Store color settings in `st.session_state`**
+Use a key like `"color_settings"` to store a dict that persists across election types and re-renders.
+
+We’ll structure it like this:
+```python
+st.session_state["color_settings"] = {
+    "Democratic": {"Tilt": "#99ccff", "Lean": "#6699ff", "Likely": "#3366cc", "Safe": "#003399"},
+    "Republican": {"Tilt": "#ff9999", "Lean": "#ff6666", "Likely": "#cc3333", "Safe": "#990000"},
+    "Independent": {"Tilt": "#cccc99", "Lean": "#999966", "Likely": "#666633", "Safe": "#333300"}
+}
+```
+
+#### 2. **Initialize only once**
+Near the top of your app (right after other session state initializations), insert:
+
+```python
+if "color_settings" not in st.session_state:
+    st.session_state["color_settings"] = {
+        "Democratic": {"Tilt": "#99ccff", "Lean": "#6699ff", "Likely": "#3366cc", "Safe": "#003399"},
+        "Republican": {"Tilt": "#ff9999", "Lean": "#ff6666", "Likely": "#cc3333", "Safe": "#990000"},
+        "Independent": {"Tilt": "#cccc99", "Lean": "#999966", "Likely": "#666633", "Safe": "#333300"}
+    }
+```
+
+#### 3. **Update color pickers to reference session state**
+Inside your `Color Customizer` section (currently under `if selected_state != "None"`), update the pickers like this:
+
+```python
+with col1:
+    st.markdown("**Democratic Shades**")
+    for level in ["Tilt", "Lean", "Likely", "Safe"]:
+        color = st.color_picker(
+            f"{level} Dem",
+            value=st.session_state["color_settings"]["Democratic"][level],
+            key=f"color_{level.lower()}_dem"
+        )
+        st.session_state["color_settings"]["Democratic"][level] = color
+```
+
+Repeat for Republican and Independent with similar blocks using keys like `color_{level.lower()}_rep` and `color_{level.lower()}_ind`.
+
+#### 4. **Pass these into map rendering**
+When calling `render_svg_file(...)`, use:
+
+```python
+dem_colors = st.session_state["color_settings"]["Democratic"]
+rep_colors = st.session_state["color_settings"]["Republican"]
+ind_colors = st.session_state["color_settings"]["Independent"]
+```
+
+---
+
+### ✅ Result
+
+Now:
+- Switching between election types won’t reset your color choices.
+- User preferences persist for as long as the session lasts.
+- The map updates in real-time based on your custom palette.
+
+---
+
+Would you like me to generate a fully patched block for that section to paste in, or do you want to apply it directly?
