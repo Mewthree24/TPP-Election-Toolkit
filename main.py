@@ -24,15 +24,17 @@ def render_svg_file(svg_path: str, title: str = None):
 
         encoded = base64.b64encode(svg_data.encode()).decode()
 
+        # === Force proper aspect ratio rendering (like image) ===
         components.html(
             f"""
             <div style="display: flex; justify-content: center;">
-                <object type="image/svg+xml" data="data:image/svg+xml;base64,{encoded}" 
-                    style="width: 100%; max-width: 1000px; height: auto; display: block;">
-                </object>
+                <div style="width: 100%; max-width: 1000px;">
+                    <img src="data:image/svg+xml;base64,{encoded}"
+                         style="width: 100%; height: auto; display: block;" />
+                </div>
             </div>
             """,
-            height=800,  # Prevent clipping but allow scaling
+            height=800,
             scrolling=False
         )
 
@@ -640,7 +642,7 @@ if st.session_state["election_data"]:
 
                         # === Data Rows ===
                         row_idx = 3
-                        total_votes = {p: 0 for p in candidate_parties}
+                        total_votes = {p: 0 forp in candidate_parties}
                         electoral_totals = {p: 0 for p in candidate_parties}
 
                         all_states = {e["state"]: e for e in entries_to_convert}
