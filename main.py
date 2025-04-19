@@ -17,6 +17,18 @@ def normalize_county_id(name):
 
 def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
     color_map = {}
+    rating_to_color = {
+        f"{strength} Democratic": dem_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    }
+    rating_to_color.update({
+        f"{strength} Republican": rep_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    })
+    rating_to_color.update({
+        f"{strength} Independent": ind_colors.get(strength, "#cccccc")
+        for strength in ["Safe", "Likely", "Lean", "Tilt"]
+    })
 
     for _, row in df.iterrows():
         county = row.get("County", "")
@@ -31,22 +43,10 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
         if not county or not rating:
             continue
 
-        parts = rating.split()
-        if len(parts) >= 2:
-            strength = parts[0]
-            party = parts[-1]  # Take last word as party
-
-            color = "#cccccc"  # Default color
-            if party == "Democratic":
-                color = dem_colors.get(strength, "#cccccc") 
-            elif party == "Republican":
-                color = rep_colors.get(strength, "#cccccc")
-            else:
-                color = ind_colors.get(strength, "#cccccc")
-
-            # Normalize the county ID to match SVG
-            county_id = county.lower().replace(" ", "_") + "_county"
-            color_map[county_id] = color
+        # Properly normalize county ID to avoid double _county suffix
+        county_id = county.lower().replace(" ", "_").removesuffix("_county") + "_county"
+        color = rating_to_color.get(rating, "#cccccc")
+        color_map[county_id] = color
 
     return color_map
 
