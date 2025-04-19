@@ -243,17 +243,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         st.download_button(
             label="📥 Download Map (SVG)",
             data=svg_data.encode("utf-8"),
-            state = st.session_state.get("selected_state", "National_View")
-            etype = st.session_state.get("election_type", "Election")
-
-            # Clean up name: if state is "National View", omit it in favor of etype only
-            if state == "National View":
-                filename = f"{etype.replace(' ', '_')}_National_View_Election.svg"
-            else:
-                filename = f"{state.replace(' ', '_')}_{etype.replace(' ', '_')}_Election.svg"
-
-            # And then use this
-            file_name=filename,
+            file_name=f"{st.session_state.get('selected_state', 'National_View').replace(' ', '_')}_{st.session_state.get('election_type', 'Election').replace(' ', '_')}_Election.svg",
             mime="image/svg+xml"
         )
 
