@@ -403,13 +403,12 @@ if st.session_state["election_data"]:
                 sorted_votes = sorted(party_votes.items(), key=lambda x: x[1], reverse=True)
                 margin = int(round(sorted_votes[0][1] - (sorted_votes[1][1] if len(sorted_votes) > 1 else 0)))
                 margin_pct = round(margin / total_vote * 100, 2) if total_vote else 0
-                rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
-                rating_label = f"{rating} {party_labels.get(sorted_votes[0][0], sorted_votes[0][0])}"
+                rating = assign_rating(margin_pct, party_labels.get(sorted_votes[0][0], sorted_votes[0][0]), tilt_max, lean_max, likely_max)
 
                 ws.cell(row=row_idx, column=col_idx, value=f"{margin:,}")
                 ws.cell(row=row_idx, column=col_idx + 1, value=f"{margin_pct:.2f}%")
                 ws.cell(row=row_idx, column=col_idx + 2, value=f"{int(round(total_vote)):,}")
-                ws.cell(row=row_idx, column=col_idx + 3, value=rating_label)
+                ws.cell(row=row_idx, column=col_idx + 3, value=rating)
 
                 if winner_party:
                     seats_won[winner_party] +=1 #update seats won
@@ -434,13 +433,12 @@ if st.session_state["election_data"]:
             margin_total = sorted_totals[0][1] - (sorted_totals[1][1] if len(sorted_totals) > 1 else 0)
             margin_pct_total = round(margin_total / grand_total * 100, 2) if grand_total else 0
             winner_party = sorted_totals[0][0]
-            rating = "Tilt" if margin_pct_total < 1 else "Lean" if margin_pct_total < 5 else "Likely" if margin_pct_total < 10 else "Safe"
-            rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+            rating = assign_rating(margin_pct_total, party_labels.get(winner_party, winner_party), tilt_max, lean_max, likely_max)
 
             ws.cell(row=row_idx, column=col_idx, value=f"{margin_total:,}")
             ws.cell(row=row_idx, column=col_idx + 1, value=f"{margin_pct_total:.2f}%")
             ws.cell(row=row_idx, column=col_idx + 2, value=f"{int(round(grand_total)):,}")
-            ws.cell(row=row_idx, column=col_idx + 3, value=rating_label)
+            ws.cell(row=row_idx, column=col_idx + 3, value=rating)
 
             for c in range(1, col_idx + 4):
                 ws.cell(row=row_idx, column=c).font = Font(bold=True)
@@ -658,13 +656,12 @@ if st.session_state["election_data"]:
                                 margin_pct = round(margin / total_vote * 100, 2) if total_vote else 0
                                 winner = vote_values[0][0]
                                 winner_party = next((c["party"] for c in candidates if c["name"] == winner), "?")
-                                rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
-                                rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+                                rating = assign_rating(margin_pct, party_labels.get(winner_party, winner_party), tilt_max, lean_max, likely_max)
 
                                 ws.cell(row=row_idx, column=col, value="{:,}".format(margin))
                                 ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
                                 ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(total_vote))))
-                                ws.cell(row=row_idx, column=col + 3, value=rating_label)
+                                ws.cell(row=row_idx, column=col + 3, value=rating)
                                 row_idx += 1
 
                             # === Totals row ===
@@ -685,13 +682,12 @@ if st.session_state["election_data"]:
                             margin = top - second
                             margin_pct = round(margin / grand_total * 100, 2) if grand_total else 0
                             winner_party = next((c["party"] for c in candidates if c["name"] == sorted_totals[0][0]), "?")
-                            rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
-                            rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+                            rating = assign_rating(margin_pct, party_labels.get(winner_party, winner_party), tilt_max, lean_max, likely_max)
 
                             ws.cell(row=row_idx, column=col, value="{:,}".format(margin))
                             ws.cell(row=row_idx, column=col + 1, value="{:.2f}%".format(margin_pct))
                             ws.cell(row=row_idx, column=col + 2, value="{:,}".format(int(round(grand_total))))
-                            ws.cell(row=row_idx, column=col + 3, value=rating_label)
+                            ws.cell(row=row_idx, column=col + 3, value=rating)
 
                         from openpyxl.styles import Font
 
@@ -848,8 +844,7 @@ if st.session_state["election_data"]:
                             winner_party = sorted_parties[0][0]
                             margin = int(round(sorted_parties[0][1] - (sorted_parties[1][1] if len(sorted_parties) > 1 else 0)))
                             margin_pct = round(margin / total * 100, 2) if total else 0
-                            rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
-                            rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+                            rating = assign_rating(margin_pct, party_labels.get(winner_party, winner_party), tilt_max, lean_max, likely_max)
 
                             col = 3
                             for p in candidate_parties:
@@ -871,7 +866,7 @@ if st.session_state["election_data"]:
                             ws.cell(row=row_idx, column=col, value=f"{margin:,}")
                             ws.cell(row=row_idx, column=col + 1, value=f"{margin_pct:.2f}%")
                             ws.cell(row=row_idx, column=col + 2, value=f"{int(round(total)):,}")
-                            ws.cell(row=row_idx, column=col + 3, value=rating_label)
+                            ws.cell(row=row_idx, column=col + 3, value=rating)
                             row_idx += 1
 
                         # === Totals row ===
@@ -886,8 +881,7 @@ if st.session_state["election_data"]:
                         second = sorted_totals[1][1] if len(sorted_totals) > 1 else 0
                         margin = int(round(top - second))
                         margin_pct = round(margin / grand_total * 100, 2) if grand_total else 0
-                        rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
-                        rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+                        rating = assign_rating(margin_pct, party_labels.get(winner_party, winner_party), tilt_max, lean_max, likely_max)
 
                         for p in candidate_parties:
                             raw_total = total_votes[p]
@@ -905,7 +899,7 @@ if st.session_state["election_data"]:
                         ws.cell(row=row_idx, column=col, value=f"{margin_total:,}")
                         ws.cell(row=row_idx, column=col + 1, value=f"{margin_pct_total:.2f}%")
                         ws.cell(row=row_idx, column=col + 2, value=f"{int(round(grand_total)):,}")
-                        ws.cell(row=row_idx, column=col + 3, value=rating_label)
+                        ws.cell(row=row_idx, column=col + 3, value=rating)
 
                         for c in range(1, col + 4):
                             ws.cell(row=row_idx, column=c).font = Font(bold=True)
@@ -1073,13 +1067,12 @@ if st.session_state["election_data"]:
                         winner_party = sorted_votes[0][0]
                         if winner_party in seats_won:
                             seats_won[winner_party] += 1
-                        rating = "Tilt" if margin_pct < 1 else "Lean" if margin_pct < 5 else "Likely" if margin_pct < 10 else "Safe"
-                        rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+                        rating = assign_rating(margin_pct, party_labels.get(winner_party, winner_party), tilt_max, lean_max, likely_max)
 
                         ws.cell(row=row_idx, column=col_idx, value=f"{margin:,}")
                         ws.cell(row=row_idx, column=col_idx + 1, value=f"{margin_pct:.2f}%")
                         ws.cell(row=row_idx, column=col_idx + 2, value=f"{int(round(total_vote)):,}")
-                        ws.cell(row=row_idx, column=col_idx + 3, value=rating_label)
+                        ws.cell(row=row_idx, column=col_idx + 3, value=rating)
 
                         grand_total += total_vote
                         row_idx += 1
@@ -1100,13 +1093,12 @@ if st.session_state["election_data"]:
                     margin_total = sorted_totals[0][1] - (sorted_totals[1][1] if len(sorted_totals) > 1 else 0)
                     margin_pct_total = round(margin_total / grand_total * 100, 2) if grand_total else 0
                     winner_party = sorted_totals[0][0]
-                    rating = "Tilt" if margin_pct_total < 1 else "Lean" if margin_pct_total < 5 else "Likely" if margin_pct_total < 10 else "Safe"
-                    rating_label = f"{rating} {party_labels.get(winner_party, winner_party)}"
+                    rating = assign_rating(margin_pct_total, party_labels.get(winner_party, winner_party), tilt_max, lean_max, likely_max)
 
                     ws.cell(row=row_idx, column=col_idx, value=f"{margin_total:,}")
                     ws.cell(row=row_idx, column=col_idx + 1, value=f"{margin_pct_total:.2f}%")
                     ws.cell(row=row_idx, column=col_idx + 2, value=f"{int(round(grand_total)):,}")
-                    ws.cell(row=row_idx, column=col_idx + 3, value=rating_label)
+                    ws.cell(row=row_idx, column=col_idx + 3, value=rating)
 
                     for c in range(1, col_idx + 4):
                         ws.cell(row=row_idx, column=c).font = Font(bold=True)
