@@ -203,49 +203,40 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
 
         # === Apply proper SVG rendering rules ===
         # 1. Only inject viewBox for national maps
-        # Force viewBox if missing
+        # Inject viewBox if missing
         if 'viewBox=' not in svg_data:
-            # Try to extract width/height to estimate viewBox
             width_match = re.search(r'width="(\d+)"', svg_data)
             height_match = re.search(r'height="(\d+)"', svg_data)
-
             width = int(width_match.group(1)) if width_match else 1000
             height = int(height_match.group(1)) if height_match else 600
-
             svg_data = re.sub(r'<svg', f'<svg viewBox="0 0 {width} {height}"', svg_data)
-
-        # Clean up and inject single preserveAspectRatio 
+        
+        # Now do all styling edits in one pass
         svg_display = re.sub(
             r'<svg([^>]*)>',
             lambda m: (
-                '<svg' +
-                re.sub(r'preserveAspectRatio="[^"]*"', '', m.group(1)) +
-                ' preserveAspectRatio="xMidYMid meet">'
+                f'<svg{m.group(1)} preserveAspectRatio="xMidYMid meet" style="max-width: 100%; height: auto; display: block;"'
+                if 'style=' not in m.group(1)
+                else re.sub(
+                    r'style="[^"]*"',
+                    'style="max-width: 100%; height: auto; display: block;" preserveAspectRatio="xMidYMid meet"',
+                    m.group(0)
+                )
             ),
-            svg_data
+            svg_data  # ✅ CORRECT INPUT — NOT svg_display again
         )
-
-        # 2. Clean up and inject single preserveAspectRatio 
-        svg_display = re.sub(
-            r'<svg([^>]*)>',
-            lambda m: (
-                '<svg' +
-                re.sub(r'preserveAspectRatio="[^"]*"', '', m.group(1)) +
-                ' preserveAspectRatio="xMidYMid meet">'
-            ),
-            svg_display
-        )
-
+        
         components.html(
-            f"""
-            <div style="width: 100%; margin: 0 auto;">
-                {svg_display}
-            </div>
-            """,
-            height=700,
-            scrolling=False
-        )
-
+                f"""
+                <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
+                    <div style="width: 100%; max-width: 1000px;">
+                        {svg_display}
+                    </div>
+                </div>
+                """,
+                height = 600 if "ak" not in svg_path.lower() else 400  # Alaska is wide, needs less height
+                scrolling=False
+            )
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
 
     except Exception as e:
