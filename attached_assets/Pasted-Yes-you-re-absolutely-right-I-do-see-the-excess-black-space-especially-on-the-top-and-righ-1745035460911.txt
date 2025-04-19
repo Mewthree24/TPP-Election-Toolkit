@@ -1,0 +1,60 @@
+Yes — you're absolutely right. I **do** see the excess black space, especially on the **top and right**. That’s caused by the original `viewBox` and dimensions **not tightly wrapping the shape** of the state.
+
+So let’s fix it properly.
+
+---
+
+### ✅ Goal:
+1. **Remove the black background**
+2. **Scale the SVG to fill the view cleanly without being cut off or leaving excess space**
+
+---
+
+### 🛠️ Fix: Cleanest and Smartest Approach
+
+Let's simplify the rendering block and just **embed the raw SVG** with `width: 100%` and no outer `background-color`. Like this:
+
+```python
+def render_svg_file(svg_path: str, title: str = None):
+    import streamlit.components.v1 as components
+
+    try:
+        with open(svg_path, "r", encoding="utf-8") as f:
+            svg_raw = f.read()
+
+        if title:
+            st.subheader(title)
+
+        # Clean, background-free, scalable SVG view
+        components.html(
+            f"""
+            <div style="display: flex; justify-content: center;">
+                <div style="width: 100%; max-width: 1000px;">
+                    <div style="padding: 10px;">
+                        <div style="width: 100%; height: auto;">
+                            {svg_raw}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """,
+            height=700,
+            scrolling=False
+        )
+        st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
+
+    except Exception as e:
+        st.error(f"⚠️ Failed to render SVG: {e}")
+```
+
+### 🔍 Bonus – Why this works:
+- No forced `background-color: black`
+- The original SVG's own `viewBox` is respected
+- No tampering with `<svg>` internals
+- Width fully uses the container (`100%`), height scales naturally
+
+If some states are still too small vertically, we can tweak the `height` of the container (`height=700`) or use a more responsive `vh`/`vw` ratio later.
+
+---
+
+Let me know how this version looks — and then we’ll jump into coloring it 🎨 based on the "Rating" column!
