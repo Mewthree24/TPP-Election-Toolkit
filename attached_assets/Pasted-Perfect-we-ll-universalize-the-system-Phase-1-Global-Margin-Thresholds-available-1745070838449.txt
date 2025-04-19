@@ -1,0 +1,85 @@
+Perfect — we’ll universalize the system:
+
+---
+
+## ✅ Phase 1: Global Margin Thresholds (available for all election types)
+
+Move the **sliders** and **color pickers** UI into a place that always runs, regardless of the election type.
+
+### 📍Place just after election type and state are selected, before spreadsheet logic begins:
+
+```python
+st.markdown("### 🎯 Margin Thresholds")
+
+tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="slider_tilt")
+lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="slider_lean")
+likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="slider_likely")
+```
+
+*Color pickers* can stay below map-based results only, but thresholds should always show.
+
+---
+
+## ✅ Phase 2: Update All Spreadsheet Generators to Use Threshold-Based Ratings
+
+We’ll apply this **after** each spreadsheet (`df_display`) is generated for:
+- 🟦 President (state and national)
+- 🟥 Senate
+- 🟩 Governor
+- 🟨 House
+- 🟫 State House / State Senate
+
+### 🔧 Add this below each `df_display = ...` line:
+
+```python
+df_display = update_df_with_custom_ratings(df_display, tilt_max, lean_max, likely_max)
+```
+
+---
+
+## 🧠 Rating Logic Function (Full Version)
+
+Place this near the top of your script:
+
+```python
+def assign_rating(margin, winner, tilt_max, lean_max, likely_max):
+    if margin <= tilt_max:
+        level = "Tilt"
+    elif margin <= lean_max:
+        level = "Lean"
+    elif margin <= likely_max:
+        level = "Likely"
+    else:
+        level = "Safe"
+    return f"{level} {winner}"
+
+def update_df_with_custom_ratings(df, tilt_max, lean_max, likely_max):
+    df = df.copy()
+
+    if "Rating" in df.columns and "Margin %" in df.columns:
+        df["Rating"] = df.apply(
+            lambda row: assign_rating(
+                abs(float(str(row["Margin %"]).strip("%"))),
+                row["Rating"].split()[-1] if isinstance(row["Rating"], str) else "",
+                tilt_max,
+                lean_max,
+                likely_max
+            )
+            if pd.notna(row.get("Rating")) and "%" in str(row["Margin %"])
+            else row.get("Rating", ""),
+            axis=1
+        )
+
+    return df
+```
+
+---
+
+### ✅ Result:
+- All elections (mapped or not) use custom thresholds
+- All spreadsheets show the correct `"Rating"` based on slider logic
+- No duplicated code or election-specific patching
+
+---
+
+Let me know once you’ve got that in and I’ll help walk through any spot that needs a tweak — then we can apply those colors to SVG maps next!
