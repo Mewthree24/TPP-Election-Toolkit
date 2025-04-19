@@ -201,6 +201,14 @@ if "lean_max" not in st.session_state:
 if "likely_max" not in st.session_state:
     st.session_state["likely_max"] = 12
 
+# Initialize color settings
+if "color_settings" not in st.session_state:
+    st.session_state["color_settings"] = {
+        "Democratic": {"Tilt": "#99ccff", "Lean": "#6699ff", "Likely": "#3366cc", "Safe": "#003399"},
+        "Republican": {"Tilt": "#ff9999", "Lean": "#ff6666", "Likely": "#cc3333", "Safe": "#990000"},
+        "Independent": {"Tilt": "#cccc99", "Lean": "#999966", "Likely": "#666633", "Safe": "#333300"}
+    }
+
 st.title("🗳️ TPP Election Toolkit")
 
 # Upload file
@@ -528,30 +536,39 @@ if st.session_state["election_data"]:
 
                 with col1:
                     st.markdown("**Democratic Shades**")
-                    dem_colors = {
-                        "Tilt": st.color_picker("Tilt Dem", "#99ccff", key=f"color_tilt_dem_{color_ui_id}"),
-                        "Lean": st.color_picker("Lean Dem", "#6699ff", key=f"color_lean_dem_{color_ui_id}"),
-                        "Likely": st.color_picker("Likely Dem", "#3366cc", key=f"color_likely_dem_{color_ui_id}"),
-                        "Safe": st.color_picker("Safe Dem", "#003399", key=f"color_safe_dem_{color_ui_id}")
-                    }
+                    dem_colors = {}
+                    for level in ["Tilt", "Lean", "Likely", "Safe"]:
+                        color = st.color_picker(
+                            f"{level} Dem",
+                            value=st.session_state["color_settings"]["Democratic"][level],
+                            key=f"color_{level.lower()}_dem"
+                        )
+                        st.session_state["color_settings"]["Democratic"][level] = color
+                        dem_colors[level] = color
 
                 with col2:
                     st.markdown("**Republican Shades**")
-                    rep_colors = {
-                        "Tilt": st.color_picker("Tilt Rep", "#ff9999", key=f"color_tilt_rep_{color_ui_id}"),
-                        "Lean": st.color_picker("Lean Rep", "#ff6666", key=f"color_lean_rep_{color_ui_id}"),
-                        "Likely": st.color_picker("Likely Rep", "#cc3333", key=f"color_likely_rep_{color_ui_id}"),
-                        "Safe": st.color_picker("Safe Rep", "#990000", key=f"color_safe_rep_{color_ui_id}")
-                    }
+                    rep_colors = {}
+                    for level in ["Tilt", "Lean", "Likely", "Safe"]:
+                        color = st.color_picker(
+                            f"{level} Rep",
+                            value=st.session_state["color_settings"]["Republican"][level],
+                            key=f"color_{level.lower()}_rep"
+                        )
+                        st.session_state["color_settings"]["Republican"][level] = color
+                        rep_colors[level] = color
 
                 with col3:
                     st.markdown("**Independent Shades**")
-                    ind_colors = {
-                        "Tilt": st.color_picker("Tilt Ind", "#cccc99", key=f"color_tilt_ind_{color_ui_id}"),
-                        "Lean": st.color_picker("Lean Ind", "#999966", key=f"color_lean_ind_{color_ui_id}"),
-                        "Likely": st.color_picker("Likely Ind", "#666633", key=f"color_likely_ind_{color_ui_id}"),
-                        "Safe": st.color_picker("Safe Ind", "#333300", key=f"color_safe_ind_{color_ui_id}")
-                    }
+                    ind_colors = {}
+                    for level in ["Tilt", "Lean", "Likely", "Safe"]:
+                        color = st.color_picker(
+                            f"{level} Ind",
+                            value=st.session_state["color_settings"]["Independent"][level],
+                            key=f"color_{level.lower()}_ind"
+                        )
+                        st.session_state["color_settings"]["Independent"][level] = color
+                        ind_colors[level] = color
 
             if selected_state != "National View":
                 state_code = next((code for code, name in state_code_to_name.items() if name == selected_state), None)
