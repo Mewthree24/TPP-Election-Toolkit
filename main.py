@@ -9,6 +9,7 @@ import os
 import streamlit.components.v1 as components
 import re
 from streamlit_javascript import st_javascript
+import zipfile
 
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
@@ -210,7 +211,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             width = int(width_match.group(1)) if width_match else 1000
             height = int(height_match.group(1)) if height_match else 600
             svg_data = re.sub(r'<svg', f'<svg viewBox="0 0 {width} {height}"', svg_data)
-        
+
         # Now do all styling edits in one pass
         svg_display = re.sub(
             r'<svg([^>]*)>',
@@ -285,6 +286,13 @@ if "color_settings" not in st.session_state:
         "Safe": "#CC4C02"
       }
     }
+# Initialize generated spreadsheets session state if needed.
+if "generated_spreadsheets" not in st.session_state:
+    st.session_state["generated_spreadsheets"] = {}
+
+if "generated_svgs" not in st.session_state:
+    st.session_state["generated_svgs"] = {}
+
 
 st.title("🗳️ TPP Election Toolkit")
 
@@ -545,6 +553,9 @@ if st.session_state["election_data"]:
             file_stream = BytesIO()
             wb.save(file_stream)
             file_stream.seek(0)
+
+            # Store for ZIP download
+            st.session_state["generated_spreadsheets"][f"U.S._House_National_View"] = file_stream
 
             # Convert worksheet to displayable rows
             excel_rows = []
@@ -847,6 +858,9 @@ if st.session_state["election_data"]:
                         wb.save(file_stream)
                         file_stream.seek(0)
 
+                        # Store for ZIP download
+                        st.session_state["generated_spreadsheets"][f"{state_code}_{selected_election_type}_County_Results"] = file_stream
+
                         # === DISPLAY FORMATTED PREVIEW IN STREAMLIT ===
                         # Collect rows from worksheet
                         excel_rows = []
@@ -1056,6 +1070,9 @@ if st.session_state["election_data"]:
                     wb.save(file_stream)
                     file_stream.seek(0)
 
+                    # Store for ZIP download
+                    st.session_state["generated_spreadsheets"][f"Presidential_National_View"] = file_stream
+
                     # === DISPLAY PREVIEW ===
                     excel_rows = []
                     for row in ws.iter_rows(min_row=1, max_row=ws.max_row, values_only=True):
@@ -1255,6 +1272,9 @@ if st.session_state["election_data"]:
                     file_stream = BytesIO()
                     wb.save(file_stream)
                     file_stream.seek(0)
+
+                    # Store for ZIP download
+                    st.session_state["generated_spreadsheets"][f"{selected_election_type}_National_View"] = file_stream
 
                     # === Convert Excel data to preview ===
                     excel_rows = []
@@ -1469,6 +1489,9 @@ if st.session_state["election_data"]:
             wb.save(file_stream)
             file_stream.seek(0)
 
+            # Store for ZIP download
+            st.session_state["generated_spreadsheets"][f"{selected_election_type}_National_View"] = file_stream
+
             # Convert worksheet to displayable rows
             excel_rows = []
             for row in ws.iter_rows(min_row=1, max_row=ws.max_row, values_only=True):
@@ -1523,3 +1546,28 @@ if st.session_state["election_data"]:
             st.warning("This election type is not yet supported.")
     else:
         st.warning("No recognized election data found in this file.")
+
+# Initialize zip in memory
+if "download_all_buffer" not in st.session_state:
+    st.session_state.download_all_buffer = BytesIO()
+
+# Button to trigger ZIP packaging
+if st.button("📦 Download All Spreadsheets & Maps"):
+    zip_buffer = BytesIO()
+
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        # === Spreadsheets ===
+        for key, file_data in st.session_state.get("generated_spreadsheets", {}).items():
+            zipf.writestr(f"{key}.xlsx", file_data.getvalue())
+
+        # === SVG Maps ===
+        for key, svg_data in st.session_state.get("generated_svgs", {}).items():
+            zipf.writestr(f"{key}.svg", svg_data)
+
+    zip_buffer.seek(0)
+    st.download_button(
+        label="📥 Download All Files",
+        data=zip_buffer,
+        file_name="TPP_Election_Toolkit_Exports.zip",
+        mime="application/zip"
+    )
