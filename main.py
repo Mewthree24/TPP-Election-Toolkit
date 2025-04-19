@@ -95,7 +95,26 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
 
     return color_map
 
-def apply_county_colors_to_svg(svg_text, color_map):
+def apply_state_colors_to_svg(svg_text, color_map):
+    def replace_fill(match):
+        tag = match.group(0)
+        tag_type = match.group(1)
+        tag_id = match.group(2)
+
+        # Normalize state ID
+        normalized_id = tag_id.lower().strip().replace(" ", "_")
+        color = color_map.get(normalized_id)
+        
+        if color:
+            if 'style=' in tag:
+                tag = re.sub(r'fill:[^;"]+', f'fill:{color}', tag)
+            else:
+                tag = tag.replace('>', f' style="fill:{color}">')
+        return tag
+
+    return re.sub(r'<(path|g|rect)[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
+
+def apply_county_colors_to_svg(svg_text, color_map, state_code=None):
     def replace_fill(match):
         tag = match.group(0)
         tag_type = match.group(1)
@@ -148,9 +167,10 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             # Choose map type based on filename
             if "presidential" in svg_path or "states" in svg_path:
                 color_map = build_state_color_map(df_display, dem_colors, rep_colors, ind_colors)
+                svg_data = apply_state_colors_to_svg(svg_data, color_map)
             else:
                 color_map = build_county_color_map(df_display, dem_colors, rep_colors, ind_colors)
-            svg_data = apply_county_colors_to_svg(svg_data, color_map)
+                svg_data = apply_county_colors_to_svg(svg_data, color_map, state_code)
 
         encoded = base64.b64encode(svg_data.encode()).decode()
 
