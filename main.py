@@ -682,7 +682,7 @@ if st.session_state["election_data"]:
                 # Shared color levels for all parties
                 color_levels = ["Tilt", "Lean", "Likely", "Safe"]
                 color_mapping = {
-                    ""Democratic": {"label": "Dem", "colors": {}},
+                    "Democratic": {"label": "Dem", "colors": {}},
                     "Republican": {"label": "Rep", "colors": {}},
                     "Independent": {"label": "Ind", "colors": {}}
                 }
