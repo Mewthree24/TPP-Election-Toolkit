@@ -300,20 +300,6 @@ if "color_settings" not in st.session_state:
 
 st.title("🗳️ TPP Election Toolkit")
 
-# Check for clicked state from localStorage
-clicked_state = st_javascript("""
-    const stored = localStorage.getItem("clicked_state");
-    if (stored) {
-        localStorage.removeItem("clicked_state");
-        return stored;
-    }
-    return null;
-""", key=f"check_clicked_state_{hash(str(st.session_state.get('selected_state', '')))}-{selected_election_type}")
-
-if clicked_state:
-    st.session_state.selected_state = clicked_state
-    st.rerun()
-
 # Upload file
 uploaded_file = st.file_uploader("Upload your savefile", type=["json"])
 
@@ -381,6 +367,20 @@ if st.session_state["election_data"]:
 
     if available_election_types:
         selected_election_type = st.selectbox("Select Election Type", available_election_types)
+        
+        # Check for clicked state from localStorage
+        clicked_state = st_javascript("""
+            const stored = localStorage.getItem("clicked_state");
+            if (stored) {
+                localStorage.removeItem("clicked_state");
+                return stored;
+            }
+            return null;
+        """, key=f"check_clicked_state_{hash(str(st.session_state.get('selected_state', '')))}-{selected_election_type}")
+
+        if clicked_state:
+            st.session_state.selected_state = clicked_state
+            st.rerun()
         election_key = election_types[selected_election_type]
         election_data = st.session_state["election_data"][election_key]
 
