@@ -1,0 +1,72 @@
+Perfect — we’ll build the **threshold and color customization UI directly beneath the spreadsheet**, exactly where it makes sense contextually. No sidebar involved.
+
+---
+
+## ✅ Step 1: Margin Threshold Customizer (Tilt / Lean / Likely)
+Place this right after your spreadsheet output (before map rendering):
+
+```python
+st.markdown("### 🎯 Margin Thresholds")
+
+tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3)
+lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7)
+likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12)
+```
+
+We’ll use these to determine coloring bands like:
+
+- `0%–tilt_max` → Tilt  
+- `tilt_max–lean_max` → Lean  
+- `lean_max–likely_max` → Likely  
+- `> likely_max` → Safe  
+
+---
+
+## ✅ Step 2: Color Pickers by Party and Margin
+
+Also place directly underneath:
+
+```python
+st.markdown("### 🎨 Color Settings")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown("**Democratic Shades**")
+    dem_colors = {
+        "Tilt": st.color_picker("Tilt Dem", "#99ccff", key="tilt_dem"),
+        "Lean": st.color_picker("Lean Dem", "#6699ff", key="lean_dem"),
+        "Likely": st.color_picker("Likely Dem", "#3366cc", key="likely_dem"),
+        "Safe": st.color_picker("Safe Dem", "#003399", key="safe_dem")
+    }
+
+with col2:
+    st.markdown("**Republican Shades**")
+    rep_colors = {
+        "Tilt": st.color_picker("Tilt Rep", "#ff9999", key="tilt_rep"),
+        "Lean": st.color_picker("Lean Rep", "#ff6666", key="lean_rep"),
+        "Likely": st.color_picker("Likely Rep", "#cc3333", key="likely_rep"),
+        "Safe": st.color_picker("Safe Rep", "#990000", key="safe_rep")
+    }
+
+with col3:
+    st.markdown("**Independent Shades**")
+    ind_colors = {
+        "Tilt": st.color_picker("Tilt Ind", "#cccc99", key="tilt_ind"),
+        "Lean": st.color_picker("Lean Ind", "#999966", key="lean_ind"),
+        "Likely": st.color_picker("Likely Ind", "#666633", key="likely_ind"),
+        "Safe": st.color_picker("Safe Ind", "#333300", key="safe_ind")
+    }
+```
+
+---
+
+## 🔄 What Comes Next:
+Once this is set, we’ll:
+- Use the thresholds to classify ratings dynamically
+- Match each rating to the appropriate hex color
+- Apply those colors to counties/states in the SVG
+
+---
+
+Let me know once you’ve dropped this UI below your spreadsheet and we’ll move to logic + SVG modification!
