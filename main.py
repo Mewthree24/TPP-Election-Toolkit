@@ -177,7 +177,7 @@ def display_national_map(election_type):
         else:
             st.warning(f"No national map found for {election_type}")
 
-def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_colors=None, rep_colors=None, ind_colors=None, selected_election_type="Election"):
+def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_colors=None, rep_colors=None, ind_colors=None, selected_state="National View", selected_election_type="Election"):
     import streamlit.components.v1 as components
     import base64
     import os
@@ -243,7 +243,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         st.download_button(
             label="📥 Download Map (SVG)",
             data=svg_data.encode("utf-8"),
-            file_name=f"{st.session_state.get('selected_state', 'National_View').replace(' ', '_')}_{selected_election_type.replace(' ', '_')}_Election.svg",
+            file_name=f"{selected_state.replace(' ', '_')}_{selected_election_type.replace(' ', '_')}_Election.svg",
             mime="image/svg+xml"
         )
 
