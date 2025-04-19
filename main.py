@@ -27,9 +27,10 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
             
         parts = rating.split()
         if len(parts) >= 2:
-            strength = parts[0]  # Tilt, Lean, Likely, Safe
-            party = parts[1]     # Democratic, Republican, Independent
+            strength = parts[0]  
+            party = parts[1]     
             
+            color = "#cccccc"  # Default color
             if party == "Democratic":
                 color = dem_colors.get(strength, "#cccccc")
             elif party == "Republican":
