@@ -233,6 +233,14 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
             scrolling=False
         )
 
+        # Add download button for colored map
+        st.download_button(
+            label="📥 Download SVG Map",
+            data=svg_display.encode("utf-8"),
+            file_name=os.path.basename(svg_path).replace(".svg", "_colored.svg"),
+            mime="image/svg+xml"
+        )
+
         st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
 
     except Exception as e:
