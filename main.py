@@ -1300,8 +1300,7 @@ if st.session_state["election_data"]:
                             elif col2:
                                 label = str(col2)
                             else:
-                                label = "Unnamed"
-                    if label in used_names:
+                                label = "Unnamed"                    if label in used_names:
                         count = used_names[label] + 1
                         used_names[label] = count
                         label = f"{label} ({count})"
