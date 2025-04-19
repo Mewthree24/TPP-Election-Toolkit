@@ -327,6 +327,8 @@ if st.session_state["election_data"]:
             # Show dataframe
             if header_row and data_rows:
                 df_display = pd.DataFrame(data_rows, columns=header_row)
+                # Convert all numeric-like strings to numeric values
+                df_display = df_display.apply(pd.to_numeric, errors='ignore')
                 st.dataframe(df_display, use_container_width=True)
 
             # Download button
@@ -532,6 +534,8 @@ if st.session_state["election_data"]:
 
                         # Display in Streamlit
                         df_display = pd.DataFrame(data_rows, columns=header_row)
+                        # Convert all numeric-like strings to numeric values
+                        df_display = df_display.apply(pd.to_numeric, errors='ignore')
                         st.subheader(f"🧾 {selected_state} County-Level Results")
                         st.dataframe(df_display, use_container_width=True)
 
@@ -733,6 +737,8 @@ if st.session_state["election_data"]:
 
                     data_rows = excel_rows[2:]
                     df_display = pd.DataFrame(data_rows, columns=header_row)
+                    # Convert all numeric-like strings to numeric values
+                    df_display = df_display.apply(pd.to_numeric, errors='ignore')
 
                     st.subheader("🧾 Presidential National View")
                     st.dataframe(df_display, use_container_width=True)
@@ -927,7 +933,8 @@ if st.session_state["election_data"]:
 
                     data_rows = excel_rows[2:]
                     df_display = pd.DataFrame(data_rows, columns=header_row)
-
+                    # Convert all numeric-like strings to numeric values
+                    df_display = df_display.apply(pd.to_numeric, errors='ignore')
                     st.dataframe(df_display, use_container_width=True)
 
                     st.download_button(
@@ -1128,6 +1135,8 @@ if st.session_state["election_data"]:
 
             if header_row and data_rows:
                 df_display = pd.DataFrame(data_rows, columns=header_row)
+                # Convert all numeric-like strings to numeric values
+                df_display = df_display.apply(pd.to_numeric, errors='ignore')
                 st.dataframe(df_display, use_container_width=True)
 
             # Download button
