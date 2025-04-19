@@ -13,7 +13,17 @@ st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
 # === Color Generation Functions ===
 def normalize_county_id(name):
-    return name.lower().replace(" ", "_").replace("-", "_").replace(".", "").replace("'", "")
+    return (
+        name.lower()
+        .replace(" ", "_")
+        .replace("-", "_")
+        .replace(".", "")
+        .replace("'", "")
+        .replace("st_", "st")
+        .replace("ste_", "ste")
+        .removesuffix("_county")
+        + "_county"
+    )
 
 def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
     color_map = {}
@@ -43,8 +53,8 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
         if not county or not rating:
             continue
 
-        # Properly normalize county ID to avoid double _county suffix
-        county_id = county.lower().replace(" ", "_").removesuffix("_county") + "_county"
+        # Properly normalize county ID
+        county_id = normalize_county_id(county)
         color = rating_to_color.get(rating, "#cccccc")
         color_map[county_id] = color
 
@@ -57,7 +67,7 @@ def apply_county_colors_to_svg(svg_text, color_map):
         tag_id = match.group(2)
 
         # Normalize SVG ID to match the spreadsheet logic
-        normalized_id = tag_id.lower().replace(" ", "_") + "_county"
+        normalized_id = normalize_county_id(tag_id)
         color = color_map.get(normalized_id)
 
         if color:
