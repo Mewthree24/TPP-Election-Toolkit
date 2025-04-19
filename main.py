@@ -43,9 +43,16 @@ def render_svg_file(svg_path: str, title: str = None):
         components.html(
             f"""
             <div style="display: flex; justify-content: center;">
-                <div style="width: 100%; max-width: 1000px;">
+                <div style="
+                    width: 100%;
+                    max-width: 1000px;
+                    aspect-ratio: 4 / 3;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: white;">
                     <img src="data:image/svg+xml;base64,{encoded}"
-                         style="width: 100%; height: auto; display: block;" />
+                         style="width: 100%; height: 100%; object-fit: contain;" />
                 </div>
             </div>
             """,
