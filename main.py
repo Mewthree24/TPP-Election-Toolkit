@@ -177,7 +177,7 @@ def display_national_map(election_type):
         else:
             st.warning(f"No national map found for {election_type}")
 
-def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_colors=None, rep_colors=None, ind_colors=None):
+def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_colors=None, rep_colors=None, ind_colors=None, selected_election_type="Election"):
     import streamlit.components.v1 as components
     import base64
     import os
@@ -243,7 +243,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         st.download_button(
             label="📥 Download Map (SVG)",
             data=svg_data.encode("utf-8"),
-            file_name=f"{st.session_state.get('selected_state', 'National_View').replace(' ', '_')}_{st.session_state.get('election_type', 'Election').replace(' ', '_')}_Election.svg",
+            file_name=f"{st.session_state.get('selected_state', 'National_View').replace(' ', '_')}_{selected_election_type.replace(' ', '_')}_Election.svg",
             mime="image/svg+xml"
         )
 
@@ -913,7 +913,7 @@ if st.session_state["election_data"]:
                         if os.path.exists(svg_path):
                             # Extract County and Rating from displayed df
                             coloring_df = df_display[["County", "Rating"]].copy()
-                            render_svg_file(svg_path, title="🗺️ County-Level Map", df_display=coloring_df, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
+                            render_svg_file(svg_path, title="🗺️ County-Level Map", df_display=coloring_df, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors, selected_election_type=selected_election_type)
                         else:
                             st.warning(f"❌ No county-level map found for {state_code}")
                     else:
