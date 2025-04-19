@@ -17,19 +17,19 @@ def normalize_county_id(name):
 
 def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
     color_map = {}
-    
+
     for _, row in df.iterrows():
         county = str(row.get("County", "")).strip()
         rating = str(row.get("Rating", "")).strip()
-        
+
         if not county or not rating:
             continue
-            
+
         parts = rating.split()
         if len(parts) >= 2:
             strength = parts[0]
             party = parts[-1]  # Take last word as party
-            
+
             color = "#cccccc"  # Default color
             if party == "Democratic":
                 color = dem_colors.get(strength, "#cccccc")
@@ -37,7 +37,7 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
                 color = rep_colors.get(strength, "#cccccc")
             else:
                 color = ind_colors.get(strength, "#cccccc")
-                
+
             county_id = normalize_county_id(county)
             color_map[county_id] = color
 
@@ -711,7 +711,17 @@ if st.session_state["election_data"]:
                         svg_filename = f"{state_code.lower()}.svg"
                         svg_path = os.path.join("SVG", svg_filename)
                         if os.path.exists(svg_path):
-                            render_svg_file(svg_path, title="🗺️ County-Level Map", df_display=df, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
+                            # Create coloring dataframe with County and Rating
+                            coloring_df = pd.DataFrame({
+                                'County': [county['name'] for county in counties],
+                                'Rating': [rating_label for county in counties for cands in [county.get('cands', [])] for cand in cands for rating_label in [f"{'Tilt' if margin_pct < 1 else 'Lean' if margin_pct < 5 else 'Likely' if margin_pct < 10 else 'Safe'} {party_labels.get(cand['party'], cand['party'])}"
+                                    if cand == sorted(county.get('cands', []), key=lambda x: x['votes'], reverse=True)[0]
+                                    else None]
+                                if rating_label is not None
+                            ]})
+                            st.write("🧪 Coloring from counties:", coloring_df.head())
+
+                            render_svg_file(svg_path, title="🗺️ County-Level Map", df_display=coloring_df, dem_colors=dem_colors, rep_colors=rep_colors, ind_colors=ind_colors)
                         else:
                             st.warning(f"❌ No county-level map found for {state_code}")
                     else:
@@ -1210,7 +1220,7 @@ if st.session_state["election_data"]:
 
                 # Group candidates by party and find winner
                 party_groups = defaultdict(list)
-                # Find winner based on vote count
+                # Findwinner based on vote count
                 candidates = sorted(entry.get("cands", []), key=lambda x: x["votes"], reverse=True)
                 if candidates:
                     winner = candidates[0]["name"]
