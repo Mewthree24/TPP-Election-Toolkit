@@ -305,19 +305,15 @@ clicked_state = st_javascript("""
     const stored = localStorage.getItem("clicked_state");
     if (stored) {
         localStorage.removeItem("clicked_state");
-        const selectBox = document.querySelector('select[data-testid="stSelectbox"]');
-        if (selectBox) {
-            selectBox.value = stored;
-            selectBox.dispatchEvent(new Event('change', { bubbles: true }));
-        }
         return stored;
     }
     return null;
 """)
 
 if clicked_state:
-    st.session_state["selected_state"] = clicked_state
-    st.experimental_rerun()
+    st.session_state.selected_state = clicked_state
+    # Force streamlit to update the selectbox value
+    st.rerun()
 
 # Upload file
 uploaded_file = st.file_uploader("Upload your savefile", type=["json"])
