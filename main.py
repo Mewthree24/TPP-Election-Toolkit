@@ -337,6 +337,9 @@ if uploaded_file:
 if "selected_state" not in st.session_state:
     st.session_state.selected_state = "National View"
 
+except Exception as e:
+        st.error(f"Failed to process election data: {str(e)}")
+
 if st.session_state["election_data"]:
 
     state_code_to_name = {
