@@ -10,9 +10,6 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
-def display_national_map(election_type: str):
-
-
 # === Color Generation Functions ===
 def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
     color_map = {}
