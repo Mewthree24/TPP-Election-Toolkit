@@ -65,11 +65,6 @@ if "election_data" not in st.session_state:
 
 st.title("🗳️ TPP Election Toolkit")
 
-# Add SVG Viewer Test
-st.subheader("🖼️ SVG Viewer Test")
-test_svg_file = os.path.join("SVG", "wi.svg")
-render_svg_file(test_svg_file)
-
 # Upload file
 uploaded_file = st.file_uploader("Upload your savefile", type=["json"])
 
