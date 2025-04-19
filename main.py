@@ -697,7 +697,7 @@ if st.session_state["election_data"]:
                             value=st.session_state.color_settings["Democratic"][level],
                             key=color_key
                         )
-                        color_mapping["Democratic"]["colors"][level] = st.session_state.color_settings["Democratic"][level]
+                        colormapping["Democratic"]["colors"][level] = st.session_state.color_settings["Democratic"][level]
 
                 with col2:
                     st.markdown("**Republican Shades**")
@@ -708,7 +708,7 @@ if st.session_state["election_data"]:
                             value=st.session_state.color_settings["Republican"][level],
                             key=color_key
                         )
-                        color_mapping["Republican"]["colors"][level] = st.session_state.color_settings["Republican"][level]
+                        colormapping["Republican"]["colors"][level] = st.session_state.color_settings["Republican"][level]
 
                 with col3:
                     st.markdown("**Independent Shades**")
@@ -719,12 +719,12 @@ if st.session_state["election_data"]:
                             value=st.session_state.color_settings["Independent"][level],
                             key=color_key
                         )
-                        color_mapping["Independent"]["colors"][level] = st.session_state.color_settings["Independent"][level]
+                        colormapping["Independent"]["colors"][level] = st.session_state.color_settings["Independent"][level]
 
                 # Set the color variables for map rendering
-                dem_colors = color_mapping["Democratic"]["colors"]
-                rep_colors = color_mapping["Republican"]["colors"]
-                ind_colors = color_mapping["Independent"]["colors"]
+                dem_colors = colormapping["Democratic"]["colors"]
+                rep_colors = colormapping["Republican"]["colors"]
+                ind_colors = colormapping["Independent"]["colors"]
 
             if selected_state != "National View":
                 state_code = next((code for code, name in state_code_to_name.items() if name == selected_state), None)
@@ -1303,8 +1303,7 @@ if st.session_state["election_data"]:
                                 label = "Unnamed"
 
                             if label in used_names:
-                                count = used_names[label] + 1
-                                used_names[label] = count
+                                count = used_names[label] + 1                                used_names[label] = count
                                 label = f"{label} ({count})"
                             else:
                                 used_names[label] = 1
