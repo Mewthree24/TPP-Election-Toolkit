@@ -697,8 +697,7 @@ if st.session_state["election_data"]:
                     st.markdown("**Independent Shades**")
                     for level in color_levels:
                         color_key = f"ind_{level.lower()}"
-                        st.session_state.color_settings["Independent"][level] =```python
- = st.color_picker(
+                        st.session_state.color_settings["Independent"][level] = st.color_picker(
                             f"{level} Ind",
                             value=st.session_state.color_settings["Independent"][level],
                             key=color_key
