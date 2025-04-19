@@ -137,6 +137,29 @@ def apply_state_colors_to_svg(svg_text, color_map):
     # Match all valid SVG shape tags
     return re.sub(r'<(path|g|rect|polygon|polyline|circle)[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
 
+def apply_county_colors_to_svg(svg_text, color_map, state_code):
+    def replace_fill(match):
+        tag = match.group(0)
+        tag_type = match.group(1)
+        tag_id = match.group(2)
+
+        normalized_id = tag_id.strip().lower()
+
+        # Normalize county formatting
+        normalized_id = normalized_id.replace("-", "_").replace(" ", "_").replace("county", "").replace(".", "").replace("'", "")
+        normalized_id = normalized_id.replace("st_", "st").replace("ste_", "ste").strip("_")
+
+        color = color_map.get(normalized_id)
+        if color:
+            if 'style=' in tag:
+                tag = re.sub(r'fill:[^;"]+', f'fill:{color}', tag)
+            else:
+                tag = tag.replace('>', f' style="fill:{color}">')
+        return tag
+
+    # Apply fill color to matching SVG elements
+    return re.sub(r'<(path|g|rect|polygon|polyline|circle)[^>]*id="([^"]+)"[^>]*>', replace_fill, svg_text)
+
 
 def display_national_map(election_type):
     """Helper function to display national maps for President/Senate/Governor"""
