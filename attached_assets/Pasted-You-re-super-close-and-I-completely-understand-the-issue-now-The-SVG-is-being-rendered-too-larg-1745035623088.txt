@@ -1,0 +1,59 @@
+You're super close — and I completely understand the issue now. The SVG is being rendered **too large horizontally**, so depending on browser width, it gets **cut off vertically** or horizontally. We want it to:
+
+✅ Scale fully to **fit within the container**,  
+✅ Always show the **entire state**,  
+✅ Respect proportions regardless of window size.
+
+---
+
+### ✅ Final Fix: Force Aspect Ratio to Fit Box
+We’ll use **CSS `object-fit: contain`** via an `<object>` tag instead of injecting raw SVG directly. This lets the browser handle the scaling responsively and always shows the **whole map**.
+
+---
+
+### ✨ Replace `render_svg_file()` With This:
+
+```python
+def render_svg_file(svg_path: str, title: str = None):
+    import base64
+    import streamlit.components.v1 as components
+
+    try:
+        with open(svg_path, "r", encoding="utf-8") as f:
+            svg_content = f.read()
+
+        svg_base64 = base64.b64encode(svg_content.encode()).decode()
+
+        if title:
+            st.subheader(title)
+
+        # Render as <object> to respect aspect ratio and always contain the whole SVG
+        components.html(
+            f"""
+            <div style="display: flex; justify-content: center;">
+                <object type="image/svg+xml" data="data:image/svg+xml;base64,{svg_base64}"
+                        style="max-width: 1000px; width: 100%; height: 700px; object-fit: contain;">
+                </object>
+            </div>
+            """,
+            height=720,
+            scrolling=False
+        )
+        st.success(f"🗺️ Displaying: {os.path.basename(svg_path)}")
+
+    except Exception as e:
+        st.error(f"⚠️ Failed to render SVG: {e}")
+```
+
+---
+
+### 💡 Why This Works
+- The `<object>` tag treats SVG like an image
+- `object-fit: contain` **scales it proportionally**, ensuring **no cutoff**
+- Width is still responsive to the Streamlit container
+
+---
+
+Let me know how this looks now! You should see **the full state, perfectly scaled, no matter your browser size**.
+
+Then… let’s paint this map 🎨.
