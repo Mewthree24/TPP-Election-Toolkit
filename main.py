@@ -14,6 +14,16 @@ def render_svg_file(svg_path: str, title: str = None):
     try:
         with open(svg_path, "r", encoding="utf-8") as f:
             svg_raw = f.read()
+            
+        # Extract viewBox and other attributes
+        import re
+        viewbox_match = re.search(r'viewBox="([^"]*)"', svg_raw)
+        width_match = re.search(r'width="([^"]*)"', svg_raw)
+        height_match = re.search(r'height="([^"]*)"', svg_raw)
+        
+        viewbox = viewbox_match.group(1) if viewbox_match else "0 0 1000 600"
+        width = width_match.group(1) if width_match else "1000"
+        height = height_match.group(1) if height_match else "600"
 
         svg_inner = svg_raw.split("<svg", 1)[-1].split(">", 1)[-1].rsplit("</svg>", 1)[0]
 
@@ -25,7 +35,8 @@ def render_svg_file(svg_path: str, title: str = None):
             <div style="display: flex; justify-content: center;">
                 <div style="width: 100%; max-width: 1000px;">
                     <div style="background-color: black; padding: 10px;">
-                        <svg style="width: 100%; height: auto;" preserveAspectRatio="xMidYMid meet">
+                        <svg width="{width}" height="{height}" viewBox="{viewbox}" 
+                             style="width: 100%; height: auto;" preserveAspectRatio="xMidYMid meet">
                             {svg_inner}
                         </svg>
                     </div>
