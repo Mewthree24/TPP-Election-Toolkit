@@ -17,20 +17,18 @@ def normalize_county_id(name):
 
 def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
     color_map = {}
-    # Debug print
-    st.write("Available counties in data:", df["County"].tolist())
     
     for _, row in df.iterrows():
-        county = str(row.get("County", "")).strip()
-        rating = str(row.get("Rating", "")).strip()
+        county = str(row["County"]).strip()
+        rating = str(row["Rating"]).strip()
         
         if not county or not rating:
             continue
             
         parts = rating.split()
         if len(parts) >= 2:
-            strength = parts[0]
-            party = parts[-1]  # Take last word as party in case of format "Tilt Democratic #2"
+            strength = parts[0]  # Tilt, Lean, Likely, Safe
+            party = parts[1]     # Democratic, Republican, Independent
             
             if party == "Democratic":
                 color = dem_colors.get(strength, "#cccccc")
@@ -42,8 +40,7 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
             county_id = normalize_county_id(county)
             color_map[county_id] = color
 
-        if not county or not rating:
-            continue
+    return color_map
 
         try:
             strength, party = rating.split()
