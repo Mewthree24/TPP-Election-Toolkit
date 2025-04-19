@@ -308,7 +308,7 @@ clicked_state = st_javascript("""
         return stored;
     }
     return null;
-""", key=f"check_clicked_state_{hash(str(st.session_state.get('selected_state', '')))}")
+""", key=f"check_clicked_state_{hash(str(st.session_state.get('selected_state', '')))}-{selected_election_type}")
 
 if clicked_state:
     st.session_state.selected_state = clicked_state
