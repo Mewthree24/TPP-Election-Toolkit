@@ -10,6 +10,21 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
+def display_national_map(election_type: str):
+    """Helper function to display national maps for President/Senate/Governor"""
+    map_file = {
+        "President": "presidential.svg",
+        "Senate": "states.svg",
+        "Governor": "states.svg"
+    }.get(election_type)
+
+    if map_file:
+        path = os.path.join("SVG", map_file)
+        if os.path.exists(path):
+            render_svg_file(path, title=f"🗺️ {election_type} National Map")
+        else:
+            st.warning(f"No national map found for {election_type}")
+
 def render_svg_file(svg_path: str, title: str = None):
     import streamlit.components.v1 as components
     import base64
@@ -778,6 +793,13 @@ if st.session_state["election_data"]:
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         key="president_national_view"
                     )
+                    
+                    # === Presidential National View Map ===
+                    pres_path = os.path.join("SVG", "presidential.svg")
+                    if os.path.exists(pres_path):
+                        render_svg_file(pres_path, title="🗺️ Presidential National Map")
+                    else:
+                        st.warning("No national map found for President.")
                 # === Senate/Governor National View Spreadsheet Generator ===
                 elif selected_election_type in ["Senate", "Governor"] and selected_state == "National View":
                     from collections import defaultdict
