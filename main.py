@@ -120,6 +120,7 @@ def build_county_color_map(df, dem_colors, rep_colors, ind_colors):
         county_id = normalize_county_id(county, state_code)
         color = rating_to_color.get(rating, "#cccccc")
         color_map[county_id] = color
+        color_map[f"{county_id}_city"] = color
 
     return color_map
 
@@ -417,9 +418,9 @@ if st.session_state["election_data"]:
         # === U.S. House National View Spreadsheet Generator ===
         if selected_election_type == "U.S. House":
             # Margin thresholds for House - now using session state
-            tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="house_tilt")
-            lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="house_lean")
-            likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="house_likely")
+            tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 1, key="house_tilt")
+            lean_max = st.slider("Lean Margin Max (%)", 5, 10, 5, key="house_lean")
+            likely_max = st.slider("Likely Margin Max (%)", 10, 20, 15, key="house_likely")
 
             from collections import defaultdict
             wb = Workbook()
@@ -643,9 +644,9 @@ if st.session_state["election_data"]:
             # === Show UI Controls Before Any Map ===
             if selected_election_type in ["President", "Senate", "Governor"] and selected_state != "None":
                 st.markdown("### 🎯 Margin Thresholds")
-                tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 3, key="slider_tilt")
-                lean_max = st.slider("Lean Margin Max (%)", 5, 10, 7, key="slider_lean")
-                likely_max = st.slider("Likely Margin Max (%)", 10, 20, 12, key="slider_likely")
+                tilt_max = st.slider("Tilt Margin Max (%)", 1, 5, 1, key="slider_tilt")
+                lean_max = st.slider("Lean Margin Max (%)", 5, 10, 5, key="slider_lean")
+                likely_max = st.slider("Likely Margin Max (%)", 10, 20, 15, key="slider_likely")
 
                 st.markdown("### 🎨 Color Customizer")
                 col1, col2, col3 = st.columns(3)
