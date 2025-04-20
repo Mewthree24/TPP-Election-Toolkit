@@ -191,6 +191,9 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
     try:
         with open(svg_path, "r", encoding="utf-8") as f:
             svg_data = f.read()
+            
+            # Add black background to SVG
+            svg_data = svg_data.replace('<svg', '<svg style="background-color: black;"')
 
         if title:
             st.subheader(title)
