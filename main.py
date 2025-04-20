@@ -221,7 +221,7 @@ def render_svg_file(svg_path: str, title: str = None, df_display=None, dem_color
         svg_display = re.sub(
             r'<svg([^>]*)>',
             lambda m: (
-                f'<svg{m.group(1)} preserveAspectRatio="xMidYMid meet" style="max-width: 100%; height: auto; display: block; background-color: black;">'
+                f'<svg{m.group(1)} preserveAspectRatio="xMidYMid meet" style="max-width: 100%; height: auto; display: block;">'
                 if 'style=' not in m.group(1)
                 else re.sub(
                     r'style="[^"]*"',
