@@ -1047,7 +1047,9 @@ if st.session_state["election_data"]:
 
                         # === Totals row ===
                         ws.cell(row=row_idx, column=1, value="TOTALS")
-                        ws.cell(row=row_idx, column=2, value=f"{sum(entry.get('electoralVotes', 0) for entry in entries_to_convert)}")
+                        # Correctly sum the electoral votes
+                        total_ev = sum(int(ws.cell(row=r, column=2).value or 0) for r in range(3, row_idx))
+                        ws.cell(row=row_idx, column=2, value=total_ev)
 
                         col = 3
                         grand_total = sum(total_votes.values())
