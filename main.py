@@ -10,6 +10,43 @@ import streamlit.components.v1 as components
 import re
 from streamlit_javascript import st_javascript
 
+
+# --- Arrow-safe DataFrame helper (avoids PyArrow 'Expected bytes, got int' crash) ---
+def _arrow_safe_df(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    for col in df.columns:
+        s = df[col]
+        # If it's bytes or mixed objects, prefer safe string or numeric coercion
+        if s.dtype == object:
+            # Try numeric coercion; if mostly numeric, keep; else cast to string
+            try:
+                num = pd.to_numeric(s, errors="coerce")
+                if num.notna().sum() >= max(1, int(0.8 * len(s))):
+                    df[col] = num
+                else:
+                    df[col] = s.astype(str)
+            except Exception:
+                df[col] = s.astype(str)
+        else:
+            # bytes types -> strings for Arrow
+            try:
+                import numpy as np
+                if np.issubdtype(s.dtype, np.bytes_):
+                    df[col] = s.astype(str)
+            except Exception:
+                pass
+    # Ensure pandas 'string' dtype is realized as Python strings (Arrow-friendly)
+    try:
+        df = df.convert_dtypes()
+        for col in df.columns:
+            if str(df[col].dtype).startswith("string"):
+                df[col] = df[col].astype(str)
+    except Exception:
+        pass
+    return df
+
+
+
 st.set_page_config(page_title="TPP Election Toolkit", layout="wide")
 
 # === Color Generation Functions ===
@@ -614,7 +651,7 @@ if st.session_state["election_data"]:
             if header_row and data_rows:
                 df_display = pd.DataFrame(data_rows, columns=header_row)
                 # Convert all numeric-like strings to numeric values
-                df_display = df_display.apply(pd.to_numeric, errors='ignore')
+                df_display = df_display.pipe(_arrow_safe_df)
                 # Apply custom ratings based on session state thresholds
                 df_display = update_df_with_custom_ratings(
                     df_display,
@@ -915,7 +952,7 @@ if st.session_state["election_data"]:
                         # Display in Streamlit
                         df_display = pd.DataFrame(data_rows, columns=header_row)
                         # Convert all numeric-like strings to numeric values
-                        df_display = df_display.apply(pd.to_numeric, errors='ignore')
+                        df_display = df_display.pipe(_arrow_safe_df)
                         st.subheader(f"🧾 {selected_state} County-Level Results")
                         st.dataframe(df_display, use_container_width=True)
 
@@ -1120,7 +1157,7 @@ if st.session_state["election_data"]:
                     data_rows = excel_rows[2:]
                     df_display = pd.DataFrame(data_rows, columns=header_row)
                     # Convert all numeric-like strings to numeric values
-                    df_display = df_display.apply(pd.to_numeric, errors='ignore')
+                    df_display = df_display.pipe(_arrow_safe_df)
 
                     st.subheader("🧾 Presidential National View")
                     st.dataframe(df_display, use_container_width=True)
@@ -1320,7 +1357,7 @@ if st.session_state["election_data"]:
                     data_rows = excel_rows[2:]
                     df_display = pd.DataFrame(data_rows, columns=header_row)
                     # Convert all numeric-like strings to numeric values
-                    df_display = df_display.apply(pd.to_numeric, errors='ignore')
+                    df_display = df_display.pipe(_arrow_safe_df)
 
                     st.subheader(f"🧾 {selected_election_type} National View")
                     st.dataframe(df_display, use_container_width=True)
@@ -1536,7 +1573,7 @@ if st.session_state["election_data"]:
             if header_row and data_rows:
                 df_display = pd.DataFrame(data_rows, columns=header_row)
                 # Convert all numeric-like strings to numeric values
-                df_display = df_display.apply(pd.to_numeric, errors='ignore')
+                df_display = df_display.pipe(_arrow_safe_df)
                 # Apply custom ratings based on session state thresholds
                 df_display = update_df_with_custom_ratings(
                     df_display
