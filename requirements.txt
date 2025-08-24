@@ -11,3 +11,4 @@ beautifulsoup4==4.12.3
 lxml==5.1.0
 cairosvg==2.7.1
 openpyxl==3.1.5
+streamlit-javascript==0.1.5
