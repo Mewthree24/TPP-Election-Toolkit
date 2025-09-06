@@ -399,31 +399,31 @@ if st.session_state["election_data"]:
         "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia"
     }
 
-   def flatten_election_types(election_types):
-    flat = {}
-    for k, v in election_types.items():
-        if isinstance(v, dict):
-            for subk, subv in v.items():
-                flat[f"{k}: {subk}"] = subv
-        else:
-            flat[k] = v
-    return flat
-
-election_types = {
-    "President": "electNightP",
-    "Senate": "electNightUSS",
-    "Governor": "electNightG",
-    "U.S. House": "electNightUSH",
-    "State House": "electNightStH",
-    "State Senate": "electNightStS",
-    "County Elections": {
-        "School Board": "electNightSB",
-        "City Council": "electNightCC",
-        "Mayor": "electNightM"
+       def flatten_election_types(election_types):
+        flat = {}
+        for k, v in election_types.items():
+            if isinstance(v, dict):
+                for subk, subv in v.items():
+                    flat[f"{k}: {subk}"] = subv
+            else:
+                flat[k] = v
+        return flat
+    
+    election_types = {
+        "President": "electNightP",
+        "Senate": "electNightUSS",
+        "Governor": "electNightG",
+        "U.S. House": "electNightUSH",
+        "State House": "electNightStH",
+        "State Senate": "electNightStS",
+        "County Elections": {
+            "School Board": "electNightSB",
+            "City Council": "electNightCC",
+            "Mayor": "electNightM"
+        }
     }
-}
-
-flat_types = flatten_election_types(election_types)
+    
+    flat_types = flatten_election_types(election_types)
 
 
     available_election_types = [etype for etype, ekey in election_types.items() if ekey in st.session_state["election_data"]]
