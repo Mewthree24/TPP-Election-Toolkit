@@ -383,70 +383,70 @@ if "selected_state" not in st.session_state:
 
 if st.session_state["election_data"]:
 
-state_code_to_name = {
-    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
-    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
-    "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
-    "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
-    "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
-    "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
-    "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
-    "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
-    "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
-    "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
-    "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
-    "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
-    "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia"
-}
-
-# election types: now County Elections uses a list of keys
-election_types = {
-    "President": "electNightP",
-    "Senate": "electNightUSS",
-    "Governor": "electNightG",
-    "U.S. House": "electNightUSH",
-    "State House": "electNightStH",
-    "State Senate": "electNightStS",
-    "County Elections": [
-        "electNightSB",   # School Board
-        "electNightCC",   # City Council
-        "electNightM"     # Mayor
-    ]
-}
-
-# ... code for file upload and session state initialization ...
-
-if st.session_state["election_data"]:
-    available_election_types = []
-    for etype, ekey in election_types.items():
-        if isinstance(ekey, list):  # County Elections case
-            if any(sub in st.session_state["election_data"] for sub in ekey):
-                available_election_types.append(etype)
-        else:
-            if ekey in st.session_state["election_data"]:
-                available_election_types.append(etype)
-
-    if available_election_types:
-        selected_election_type = st.selectbox("Select Election Type", available_election_types)
-
-        # Initialize state selection if not present
-        if "selected_state" not in st.session_state:
-            st.session_state.selected_state = "National View"
-            st.experimental_rerun()
-
-        # Load data for the selected election type
-        if selected_election_type == "County Elections":
-            # Bundle all three county election types present
-            election_keys = election_types["County Elections"]
-            # Only include the keys that exist in the uploaded data
-            election_data = {
-                sub: st.session_state["election_data"][sub]
-                for sub in election_keys
-                if sub in st.session_state["election_data"]
-            }
-        else:
-            election_key = election_types[selected_election_type]
-            election_data = st.session_state["election_data"][election_key]
+    state_code_to_name = {
+        "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+        "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+        "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
+        "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
+        "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+        "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
+        "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
+        "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
+        "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
+        "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+        "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
+        "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
+        "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia"
+    }
+    
+    # election types: now County Elections uses a list of keys
+    election_types = {
+        "President": "electNightP",
+        "Senate": "electNightUSS",
+        "Governor": "electNightG",
+        "U.S. House": "electNightUSH",
+        "State House": "electNightStH",
+        "State Senate": "electNightStS",
+        "County Elections": [
+            "electNightSB",   # School Board
+            "electNightCC",   # City Council
+            "electNightM"     # Mayor
+        ]
+    }
+    
+    # ... code for file upload and session state initialization ...
+    
+    if st.session_state["election_data"]:
+        available_election_types = []
+        for etype, ekey in election_types.items():
+            if isinstance(ekey, list):  # County Elections case
+                if any(sub in st.session_state["election_data"] for sub in ekey):
+                    available_election_types.append(etype)
+            else:
+                if ekey in st.session_state["election_data"]:
+                    available_election_types.append(etype)
+    
+        if available_election_types:
+            selected_election_type = st.selectbox("Select Election Type", available_election_types)
+    
+            # Initialize state selection if not present
+            if "selected_state" not in st.session_state:
+                st.session_state.selected_state = "National View"
+                st.experimental_rerun()
+    
+            # Load data for the selected election type
+            if selected_election_type == "County Elections":
+                # Bundle all three county election types present
+                election_keys = election_types["County Elections"]
+                # Only include the keys that exist in the uploaded data
+                election_data = {
+                    sub: st.session_state["election_data"][sub]
+                    for sub in election_keys
+                    if sub in st.session_state["election_data"]
+                }
+            else:
+                election_key = election_types[selected_election_type]
+                election_data = st.session_state["election_data"][election_key]
 
         def assign_rating(margin, winner, tilt_max, lean_max, likely_max):
             if margin <= tilt_max:
