@@ -383,50 +383,56 @@ if "selected_state" not in st.session_state:
 
 if st.session_state["election_data"]:
 
-    state_code_to_name = {
-        "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
-        "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
-        "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
-        "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
-        "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
-        "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
-        "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
-        "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
-        "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
-        "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
-        "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
-        "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
-        "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia"
+    # ... (previous code unchanged) ...
+
+# These must be at top-level (not inside any function or 'if' block)
+state_code_to_name = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+    "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
+    "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
+    "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+    "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
+    "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
+    "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
+    "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
+    "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+    "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
+    "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
+    "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia"
+}
+
+def flatten_election_types(election_types):
+    flat = {}
+    for k, v in election_types.items():
+        if isinstance(v, dict):
+            for subk, subv in v.items():
+                flat[f"{k}: {subk}"] = subv
+        else:
+            flat[k] = v
+    return flat
+
+election_types = {
+    "President": "electNightP",
+    "Senate": "electNightUSS",
+    "Governor": "electNightG",
+    "U.S. House": "electNightUSH",
+    "State House": "electNightStH",
+    "State Senate": "electNightStS",
+    "County Elections": {
+        "School Board": "electNightSB",
+        "City Council": "electNightCC",
+        "Mayor": "electNightM"
     }
+}
 
-    def flatten_election_types(election_types):
-        flat = {}
-        for k, v in election_types.items():
-            if isinstance(v, dict):
-                for subk, subv in v.items():
-                    flat[f"{k}: {subk}"] = subv
-            else:
-                flat[k] = v
-        return flat
+flat_types = flatten_election_types(election_types)
 
-    election_types = {
-        "President": "electNightP",
-        "Senate": "electNightUSS",
-        "Governor": "electNightG",
-        "U.S. House": "electNightUSH",
-        "State House": "electNightStH",
-        "State Senate": "electNightStS",
-        "County Elections": {
-            "School Board": "electNightSB",
-            "City Council": "electNightCC",
-            "Mayor": "electNightM"
-        }
-    }
+# ... (rest of your code) ...
 
-    flat_types = flatten_election_types(election_types)
-
-
-   available_election_types = [etype for etype, ekey in flat_types.items() if ekey in st.session_state["election_data"]]
+if st.session_state["election_data"]:
+    # Use flat_types for available types!
+    available_election_types = [etype for etype, ekey in flat_types.items() if ekey in st.session_state["election_data"]]
 
     if available_election_types:
         selected_election_type = st.selectbox("Select Election Type", available_election_types)
@@ -435,10 +441,11 @@ if st.session_state["election_data"]:
         if "selected_state" not in st.session_state:
             st.session_state.selected_state = "National View"
             st.experimental_rerun()
-    
+
         election_key = flat_types[selected_election_type]
         election_data = st.session_state["election_data"][election_key]
-    # ... rest of code ...
+
+        # ... (rest of your election type logic) ...
         def assign_rating(margin, winner, tilt_max, lean_max, likely_max):
             if margin <= tilt_max:
                 level = "Tilt"
