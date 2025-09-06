@@ -428,16 +428,16 @@ if st.session_state["election_data"]:
 
    available_election_types = [etype for etype, ekey in flat_types.items() if ekey in st.session_state["election_data"]]
 
-if available_election_types:
-    selected_election_type = st.selectbox("Select Election Type", available_election_types)
+    if available_election_types:
+        selected_election_type = st.selectbox("Select Election Type", available_election_types)
 
-    # Initialize state selection if not present
-    if "selected_state" not in st.session_state:
-        st.session_state.selected_state = "National View"
-        st.experimental_rerun()
-
-    election_key = flat_types[selected_election_type]
-    election_data = st.session_state["election_data"][election_key]
+        # Initialize state selection if not present
+        if "selected_state" not in st.session_state:
+            st.session_state.selected_state = "National View"
+            st.experimental_rerun()
+    
+        election_key = flat_types[selected_election_type]
+        election_data = st.session_state["election_data"][election_key]
     # ... rest of code ...
         def assign_rating(margin, winner, tilt_max, lean_max, likely_max):
             if margin <= tilt_max:
