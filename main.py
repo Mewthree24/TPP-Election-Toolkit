@@ -406,10 +406,13 @@ if st.session_state["election_data"]:
     "U.S. House": "electNightUSH",
     "State House": "electNightStH",
     "State Senate": "electNightStS",
-    "School Board": "electNightSB",
-    "City Council": "electNightCC",
-    "Mayor": "electNightM"
+    "County Elections": {
+        "School Board": "electNightSB",
+        "City Council": "electNightCC",
+        "Mayor": "electNightM"
+    }
 }
+
 
     available_election_types = [etype for etype, ekey in election_types.items() if ekey in st.session_state["election_data"]]
 
