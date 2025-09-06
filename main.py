@@ -399,7 +399,7 @@ if st.session_state["election_data"]:
         "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia"
     }
 
-           def flatten_election_types(election_types):
+    def flatten_election_types(election_types):
         flat = {}
         for k, v in election_types.items():
             if isinstance(v, dict):
