@@ -8,8 +8,7 @@ plotly==5.22.0
 requests==2.32.3
 python-dateutil==2.9.0.post0
 beautifulsoup4==4.12.3
-# Use a modern lxml so pip installs a prebuilt wheel instead of compiling
-lxml>=5.1.0,<6
+lxml>=5.2,<6
 cairosvg==2.7.1
 openpyxl==3.1.5
 streamlit-javascript==0.1.5
